@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "@fontsource/poppins";
+
+body {
+  font-family: "Poppins", sans-serif;
+}
+
+.input {
+  @apply w-full mt-1 px-3 py-1.5 border border-pink-200 rounded-lg outline outline-pink-300 hover:border-pink-300 resize-none;
+}

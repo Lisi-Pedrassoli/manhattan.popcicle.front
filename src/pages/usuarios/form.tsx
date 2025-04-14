@@ -16,6 +16,7 @@ export default function UsuarioForm() {
   const { data, isLoading } = useSWR<AxiosResponse<UsuarioType>>(id && `/usuario/${id}`,api.get);
 
   if (id) {
+    
     setValue("ativo", data?.data.ativo!);
     setValue("id", id);
     setValue("nome", data?.data.nome!);

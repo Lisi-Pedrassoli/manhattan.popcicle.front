@@ -66,13 +66,14 @@ export default function UsuarioForm() {
     const data = {
       nome: getValues("nome"),
       email: getValues("email"),
-      senha: getValues("senha")
+      senha: getValues("senha"),
+      ativo: Boolean(getValues("ativo"))
     }
 
     api
     .put(`/usuario`, data)
     .then(() => {
-      mutate("/usuario");
+      mutate("/usuarios");
       setLoader(false);
       goBack();
     })
@@ -123,13 +124,13 @@ export default function UsuarioForm() {
 
             <label className="flex flex-col">
               <span>{id ? "Trocar " : ""} Senha: </span>
-              <input disabled={loader} autoComplete="new-password" type="password" {...register("senha", { required: true })} placeholder="Informe a senha" className="input" />
+              <input disabled={loader} autoComplete="new-password" type="password" {...register("senha", { required: false })} placeholder="Informe a senha" className="input" />
               {errors.nome && <p className="text-xs text-red-500 mt-1">O campo não deve ser nulo</p>}
             </label>
 
             <label className="flex flex-col">
               <span>Confirmar Senha:</span>
-              <input disabled={loader} autoComplete="new-password" type="password" {...register("confirmaSenha", { required: true })} placeholder="Confirme sua senha" className="input" />
+              <input disabled={loader} autoComplete="new-password" type="password" {...register("confirmaSenha", { required: false })} placeholder="Confirme sua senha" className="input" />
               {errors.nome && <p className="text-xs text-red-500 mt-1">O campo não deve ser nulo</p>}
             </label>
 

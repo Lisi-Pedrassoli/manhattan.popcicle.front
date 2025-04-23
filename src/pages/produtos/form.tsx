@@ -102,7 +102,7 @@ export default function ProdutoForm() {
 
             <label className="flex flex-col">
               <span>Nome: </span>
-              <input disabled={loader} type="text" {...register("nome", { required: true })} placeholder="Açúcar..." className="input" />
+              <input disabled={loader} type="text" {...register("nome", { required: true })} placeholder="Limão..." className="input" />
               {errors.nome && <p className="text-xs text-red-500 mt-1">O campo não deve ser nulo</p>}
             </label>
 

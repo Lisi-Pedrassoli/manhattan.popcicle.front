@@ -1,7 +1,7 @@
 import { AxiosResponse } from "axios";
-import { CheckCircle, Plus, Trash2 } from "lucide-react";
+import { CheckCircle, Plus, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import useSWR, { mutate } from "swr";
 import EmptyList from "../../components/common/empty";
 import Skeleton from "../../components/common/skeleton";
@@ -17,6 +17,7 @@ export default function Usuarios() {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const navigate = useNavigate()
 
   const { data: usuarios, isLoading } = useSWR<AxiosResponse<UsuarioType[]>>(`/usuario?page=${currentPage}&items=${itemsPerPage}`, api.get);
   
@@ -64,8 +65,8 @@ export default function Usuarios() {
                 <TableBody>
                   {usuarios?.data.map((usuario: UsuarioType) => (
                     <TableRow key={usuario.id} className="bg-pink-100 border-transparent odd:bg-pink-50 group overflow-hidden relative ring-2 ring-inset rounded-lg ring-transparent hover:ring-pink-500 transition-none">
-                      <TableCell className="group-hover:text-pink-500 group-hover:underline">
-                        <Link className="group-hover:cursor-pointer" to={`/usuarios/form/${usuario.id}`}>{usuario.nome}</Link>
+                      <TableCell className="">
+                        <p>{usuario.nome}</p>
                       </TableCell>
                       <TableCell>{usuario.email}</TableCell>
                       <TableCell>{usuario.cargo == "ADMIN" ? "Administrador" : ""}</TableCell>
@@ -73,27 +74,17 @@ export default function Usuarios() {
                         <Status status={usuario.ativo} />
                       </TableCell>
                       <TableCell>
-                        {deleteConfirmationId == usuario.id ? (
-                          <button
-                            type="button"
-                            disabled={loader}
-                            onClick={() => desativarUsuario()}
-                            className="bg-neutral-100 text-neutral-600 hover:bg-red-100 hover:text-red-600 rounded-lg p-1"
-                          >
-                            <CheckCircle size={16} />
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={loader}
+                      <div
+                            //  href={`/usuarios/form/${usuario.id}`}
                             onClick={() =>
-                              setDeleteConfirmationId(usuario.id!)
+                              // setDeleteConfirmationId(usuario.id!)
+                              navigate(`/usuarios/form/${usuario.id}`)
                             }
-                            className="bg-neutral-100 text-neutral-600 hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
+                            className="bg-neutral-100 text-neutral-600 w-max hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
                           >
-                            <Trash2 size={16} />
-                          </button>
-                        )}
+                            
+                            <Pencil />
+                          </div>
                       </TableCell>
                     </TableRow>
                   ))}

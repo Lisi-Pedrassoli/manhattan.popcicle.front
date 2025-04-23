@@ -1,6 +1,6 @@
 import api from "../../utils/api";
 import { Link, Outlet } from "react-router-dom";
-import { CheckCircle, Plus, Trash2 } from "lucide-react";
+import { CheckCircle, Plus, Pencil } from "lucide-react";
 import { TipoProdutoType } from "../../utils/types";
 import Skeleton from "../../components/common/skeleton";
 import EmptyList from "../../components/common/empty";
@@ -82,25 +82,14 @@ export default function TiposProdutos() {
                         <Status status={_tipoProduto.ativo!} />
                       </TableCell>
                       <TableCell>
-                        {deleteConfirmationId == _tipoProduto.id ? (
-                          <button
-                            type="button"
-                            disabled={loader}
-                            onClick={() => desativarTipoProduto()}
-                            className="bg-neutral-100 text-neutral-600 hover:bg-red-100 hover:text-red-600 rounded-lg p-1"
-                          >
-                            <CheckCircle size={16} />
-                          </button>
-                        ) : (
-                          <button
+                      <button
                             type="button"
                             disabled={loader}
                             onClick={() => setDeleteConfirmationId(_tipoProduto.id!)}
                             className="bg-neutral-100 text-neutral-600 hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
                           >
-                            <Trash2 size={16} />
+                            <Pencil />
                           </button>
-                        )}
                       </TableCell>
                     </TableRow>
                   ))}

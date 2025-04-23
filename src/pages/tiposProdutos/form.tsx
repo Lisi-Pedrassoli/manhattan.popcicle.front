@@ -134,14 +134,14 @@ export default function TipoProdutoForm() {
               <span>Valor: </span>
               <input
                 disabled={loader}
-                type="number"
+                type="text"
                 {...register("valor", {
                   required: true,
                   validate: (value: number | null) =>
                     (value != null && Number(value) > 0) ||
                     "O valor deve ser positivo",
                 })}
-                placeholder="R$10,90"
+                placeholder="R$3,50"
                 className="input"
               />
               {errors.valor ? (

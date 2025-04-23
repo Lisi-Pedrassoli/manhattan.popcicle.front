@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { MateriaPrimaType } from "../../utils/types";
 import api from "../../utils/api";
 import { Link, Outlet } from "react-router-dom";
-import { CheckCircle, File, Loader2, Plus, Trash2, X } from "lucide-react";
+import { CheckCircle, File, Loader2, Plus, Pencil, X } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/table";
 import EmptyList from "../../components/common/empty";
 import Skeleton from "../../components/common/skeleton";
@@ -148,17 +148,7 @@ export default function MateriaPrima() {
                         <Status status={materiaPrima.ativo} />
                       </TableCell>
                       <TableCell>
-                        {deleteConfirmationId == materiaPrima.id ? (
-                          <button
-                            type="button"
-                            disabled={loader}
-                            onClick={() => desativarMateriaPrima()}
-                            className="bg-neutral-100 text-neutral-600 hover:bg-red-100 hover:text-red-600 rounded-lg p-1"
-                          >
-                            <CheckCircle size={16} />
-                          </button>
-                        ) : (
-                          <button
+                      <button
                             type="button"
                             disabled={loader}
                             onClick={() =>
@@ -166,9 +156,8 @@ export default function MateriaPrima() {
                             }
                             className="bg-neutral-100 text-neutral-600 hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
                           >
-                            <Trash2 size={16} />
+                            <Pencil />
                           </button>
-                        )}
                       </TableCell>
                     </TableRow>
                   ))}

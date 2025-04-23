@@ -1,6 +1,6 @@
 import { AxiosResponse } from "axios";
 import jsPDF from "jspdf";
-import { CheckCircle, File, Loader2, Plus, Trash2, X } from "lucide-react";
+import { CheckCircle, File, Loader2, Plus, Pencil, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import useSWR, { mutate } from "swr";
@@ -219,12 +219,7 @@ export default function Producoes() {
                       </TableCell>
 
                       <TableCell>
-                        {deleteConfirmationId == producao.id ? (
-                          <button type="button" disabled={loader} onClick={() => cancelarProducao()} className="bg-neutral-100 text-neutral-600 hover:bg-red-100 hover:text-red-600 rounded-lg p-1">
-                            <CheckCircle size={16} />
-                          </button>
-                        ) : (
-                          <button
+                      <button
                             type="button"
                             disabled={loader}
                             onClick={() =>
@@ -232,9 +227,8 @@ export default function Producoes() {
                             }
                             className="bg-neutral-100 text-neutral-600 hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
                           >
-                            <Trash2 size={16} />
+                            <Pencil />
                           </button>
-                        )}
                       </TableCell>
                     </TableRow>
                   ))}

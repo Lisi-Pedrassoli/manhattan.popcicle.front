@@ -1,8 +1,8 @@
 import { AxiosResponse } from "axios";
-import { CheckCircle, File, Loader2, Pencil, Plus, X } from "lucide-react";
+import { File, Loader2, Pencil, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import EmptyList from "../../components/common/empty";
 import Skeleton from "../../components/common/skeleton";
 import { Status } from "../../components/common/status";
@@ -16,7 +16,7 @@ import { toBrl } from "../../utils/utils";
 export default function Produtos() {
   const itemsPerPage = 10;
   const [loader, setLoader] = useState(false);
-  const [deleteConfirmationId, setDeleteConfirmationId] = useState("");
+  const [, setDeleteConfirmationId] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -30,20 +30,6 @@ export default function Produtos() {
   useEffect(() => {
     api.get("produto/count").then((response) => setTotalItems(response.data.count));
   }, [])
-
-  function desativarProduto() {
-    setLoader(true);
-    api
-      .delete(`/produto/${deleteConfirmationId}`)
-      .then(() => {
-        mutate("/produto");
-        setDeleteConfirmationId("");
-        setLoader(false);
-      })
-      .finally(() => {
-        setLoader(false);
-      });
-  }
 
   function gerarRelatorioPDF() {
     if(start == 0 || end == 0) {

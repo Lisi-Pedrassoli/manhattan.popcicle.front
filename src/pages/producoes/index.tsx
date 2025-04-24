@@ -1,9 +1,9 @@
 import { AxiosResponse } from "axios";
 import jsPDF from "jspdf";
-import { CheckCircle, File, Loader2, Plus, Pencil, X } from "lucide-react";
+import { File, Loader2, Plus, Pencil, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import EmptyList from "../../components/common/empty";
 import Skeleton from "../../components/common/skeleton";
 import { Status } from "../../components/common/status";
@@ -14,7 +14,7 @@ import { ProducaoReceitaType, ProducaoType } from "../../utils/types";
 export default function Producoes() {
   const itemsPerPage = 10;
   const [loader, setLoader] = useState(false);
-  const [deleteConfirmationId, setDeleteConfirmationId] = useState("");
+  const [, setDeleteConfirmationId] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -30,19 +30,6 @@ export default function Producoes() {
   useEffect(() => {
     api.get("producao/count").then((response) => setTotalItems(response.data.count));
   }, []);
-
-  function cancelarProducao() {
-    setLoader(true);
-    api.delete(`/producao/${deleteConfirmationId}`)
-    .then(() => {
-      mutate("/producao");
-      setDeleteConfirmationId("");
-      setLoader(false);
-    })
-    .finally(() => {
-      setLoader(false);
-    });
-  }
 
   function abrirModal(producaoReceita: ProducaoReceitaType[]) {
     if(producaoReceita.length) {

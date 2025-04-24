@@ -1,5 +1,5 @@
 import { AxiosResponse } from "axios";
-import { CheckCircle, Plus, Pencil } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import useSWR, { mutate } from "swr";
@@ -12,8 +12,6 @@ import { UsuarioType } from "../../utils/types";
 
 export default function Usuarios() {
   const itemsPerPage = 10;
-  const [loader, setLoader] = useState(false);
-  const [deleteConfirmationId, setDeleteConfirmationId] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -26,19 +24,6 @@ export default function Usuarios() {
     mutate("/usuario");
   }, [])
 
-  function desativarUsuario() {
-    setLoader(true);
-    api
-      .delete(`/usuario/${deleteConfirmationId}`)
-      .then(() => {
-        mutate("/usuario");
-        setDeleteConfirmationId("");
-        setLoader(false);
-      })
-      .finally(() => {
-        setLoader(false);
-      });
-  }
 
   return (
     <>

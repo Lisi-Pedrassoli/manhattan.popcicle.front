@@ -1,8 +1,6 @@
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import Layout from "./components/layout";
 import ProtectedRoute from "./components/protectedRoute";
-import Clientes from "./pages/clientes";
-import ClienteForm from "./pages/clientes/form";
 import Login from "./pages/login";
 import MateriaPrima from "./pages/materiaPrima";
 import MateriaPrimaForm from "./pages/materiaPrima/form";
@@ -48,11 +46,6 @@ export default function AppRoutes() {
             <Route path="/materias-primas" element={<MateriaPrima />}>
               <Route path="/materias-primas/form" element={<MateriaPrimaForm />} />
               <Route path="/materias-primas/form/:id" element={<MateriaPrimaForm />}/>
-            </Route>
-
-            <Route path="/clientes" element={<Clientes />}>
-              <Route path="/clientes/form" element={<ClienteForm />} />
-              <Route path="/clientes/form/:id" element={<ClienteForm />}/>
             </Route>
 
             <Route path="/receitas" element={<Receitas />}>

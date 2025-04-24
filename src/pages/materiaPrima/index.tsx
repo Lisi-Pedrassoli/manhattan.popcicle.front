@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { MateriaPrimaType } from "../../utils/types";
 import api from "../../utils/api";
 import { Link, Outlet } from "react-router-dom";
-import { CheckCircle, File, Loader2, Plus, Pencil, X } from "lucide-react";
+import { File, Loader2, Plus, Pencil, X } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/table";
 import EmptyList from "../../components/common/empty";
 import Skeleton from "../../components/common/skeleton";
 import { AxiosResponse } from "axios";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import { Status } from "../../components/common/status";
 import { conversorUnidadeMedida } from "../../components/materia-prima/unidade";
 import jsPDF from "jspdf";
@@ -16,7 +16,7 @@ import autoTable from "jspdf-autotable";
 export default function MateriaPrima() {
   const itemsPerPage = 10;
   const [loader, setLoader] = useState(false);
-  const [deleteConfirmationId, setDeleteConfirmationId] = useState("");
+  const [, setDeleteConfirmationId] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -30,20 +30,6 @@ export default function MateriaPrima() {
   useEffect(() => {
     api.get("materia-prima/count").then((response) => setTotalItems(response.data.count));
   }, [])
-
-  function desativarMateriaPrima() {
-    setLoader(true);
-    api
-      .delete(`/materia-prima/${deleteConfirmationId}`)
-      .then(() => {
-        mutate("/materia-prima");
-        setDeleteConfirmationId("");
-        setLoader(false);
-      })
-      .finally(() => {
-        setLoader(false);
-      });
-  }
 
   function gerarRelatorioPDF() {
     if(start == 0 || end == 0) {

@@ -23,7 +23,7 @@ export default function VendaForm() {
   const [loader, setLoader] = useState(false);
 
   const { id } = useParams();
-  const { handleSubmit, register, getValues, setValue, formState: { errors }} = useForm<VendaType>();
+  const { handleSubmit, register, getValues, setValue} = useForm<VendaType>();
   const [selectedProdutos, setSelectedProdutos] = useState<ProdutosSelecionadosProps[] | []>([]);
   const { data: venda, isLoading } = useSWR<AxiosResponse<VendaType>>(id && `/venda/${id}`, api.get);
   const { data: clientes, isLoading: isLoadingClientes } = useSWR<AxiosResponse<ClienteType[]>>(`/cliente`, api.get);

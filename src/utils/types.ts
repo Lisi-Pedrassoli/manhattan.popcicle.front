@@ -43,7 +43,7 @@ export type VendedorType = {
   ativo: boolean;
   id: string;
   nome: string;
-  recebimento: number;
+  comissao: number
   telefone: string;
   cpf: string;
 }

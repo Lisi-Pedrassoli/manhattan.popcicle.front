@@ -1,8 +1,8 @@
 import { AxiosResponse } from "axios";
-import { CheckCircle, Plus, Pencil, X } from "lucide-react";
+import { Plus, Pencil, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import EmptyList from "../../components/common/empty";
 import Skeleton from "../../components/common/skeleton";
 import { Status } from "../../components/common/status";
@@ -12,8 +12,8 @@ import { ReceitaType } from "../../utils/types";
 
 export default function Receitas() {
   const itemsPerPage = 10;
-  const [loader, setLoader] = useState(false);
-  const [deleteConfirmationId, setDeleteConfirmationId] = useState("");
+  const [loader] = useState(false);
+  const [, setDeleteConfirmationId] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -25,20 +25,6 @@ export default function Receitas() {
   useEffect(() => {
     api.get("produto/count").then((response) => setTotalItems(response.data.count));
   }, [])
-
-  function desativarReceita() {
-    setLoader(true);
-    api
-      .delete(`/receita/${deleteConfirmationId}`)
-      .then(() => {
-        mutate("/receita");
-        setDeleteConfirmationId("");
-        setLoader(false);
-      })
-      .finally(() => {
-        setLoader(false);
-      });
-  }
 
   function abrirModal(materiasPrimas: any[]) {
     setSelectedMateriasPrimas(materiasPrimas);

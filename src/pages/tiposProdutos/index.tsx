@@ -1,10 +1,10 @@
 import api from "../../utils/api";
 import { Link, Outlet } from "react-router-dom";
-import { CheckCircle, Plus, Pencil } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { TipoProdutoType } from "../../utils/types";
 import Skeleton from "../../components/common/skeleton";
 import EmptyList from "../../components/common/empty";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import { AxiosResponse } from "axios";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/table";
 import { Status } from "../../components/common/status";
@@ -13,8 +13,8 @@ import { toBrl } from "../../utils/utils";
 
 export default function TiposProdutos() {
   const itemsPerPage = 10;
-  const [loader, setLoader] = useState(false)
-  const [deleteConfirmationId, setDeleteConfirmationId] = useState("")
+  const [loader] = useState(false)
+  const [, setDeleteConfirmationId] = useState("")
 
   const [currentPage, setCurrentPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
@@ -25,20 +25,6 @@ export default function TiposProdutos() {
   useEffect(() => {
     api.get("tipo-produto/count").then((response) => setTotalItems(response.data.count));
   }, []);
-
-  function desativarTipoProduto(){
-    setLoader(true)
-    api
-      .delete(`/tipo-produto/${deleteConfirmationId}`)
-      .then(() => {
-        mutate("/tipo-produto");
-        setDeleteConfirmationId("")
-        setLoader(false);
-      })
-      .finally(() => {
-        setLoader(false);
-      });
-  }
 
   return (
     <>

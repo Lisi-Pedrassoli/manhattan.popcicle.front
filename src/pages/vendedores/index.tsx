@@ -70,10 +70,10 @@ export default function Vendedores() {
 
       autoTable(doc, {
         startY: 35,
-        head: [["Nome", "Recebimento", "Telefone", "Ativo"]],
+        head: [["Nome", "Comissão", "Telefone", "Ativo"]],
         body: response.data.map((vendedor: VendedorType) => [
           vendedor.nome,
-          toBrl(vendedor.recebimento),
+          toBrl(vendedor.comissao),
           formatPhone(vendedor.telefone),
           vendedor.ativo ? "Sim" : "Não"
         ]),
@@ -125,7 +125,7 @@ export default function Vendedores() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
-                    <TableHead>Recebimento</TableHead>
+                    <TableHead>Comissao</TableHead>
                     <TableHead>Telefone</TableHead>
                     <TableHead>Ativo</TableHead>
                     <TableHead>Ações</TableHead>
@@ -139,7 +139,7 @@ export default function Vendedores() {
                         <Link className="group-hover:cursor-pointer" to={`/vendedores/form/${vendedor.id}`}>{vendedor.nome}</Link>
                       </TableCell>
 
-                      <TableCell>{toBrl(vendedor.recebimento)}</TableCell>
+                      <TableCell>{vendedor.comissao}%</TableCell>
 
                       <TableCell>{formatPhone(vendedor.telefone)}</TableCell>
 

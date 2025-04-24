@@ -20,7 +20,7 @@ export default function VendedorForm() {
     setValue("id", id);
     setValue("nome", data?.data.nome!);
     setValue("cpf", data?.data.cpf!);
-    setValue("recebimento", data?.data.recebimento!);
+    setValue("comissao", data?.data.comissao!);
     setValue("telefone", data?.data.telefone!);
   }
 
@@ -28,7 +28,17 @@ export default function VendedorForm() {
     setTimeout(() => {
       setVisibility(true);
     }, 1);
-  }, []);
+  
+    if (id && data) {
+      setValue("ativo", data.data.ativo);
+      setValue("id", id);
+      setValue("nome", data.data.nome);
+      setValue("cpf", data.data.cpf);
+      setValue("comissao", data.data.comissao * 100);
+      setValue("telefone", data.data.telefone);
+    }
+  }, [data, id, setValue]);
+  
 
   function goBack() {
     if (loader) return;
@@ -51,10 +61,10 @@ export default function VendedorForm() {
 
     const data = {
       telefone: getValues("telefone"),
-      recebimento: getValues("recebimento"),
+      comissao: parseFloat(getValues("comissao").toString()) / 100,
       cpf: getValues("cpf"),
-      nome: getValues("nome")    
-    }
+      nome: getValues("nome"),
+    };
 
     api
     .post("/vendedor", data)
@@ -70,12 +80,17 @@ export default function VendedorForm() {
 
   function atualizarVendedor() {
     setLoader(true);
+    const valores = getValues();
+    const dadosConvertidos = {
+      ...valores,
+      comissao: parseFloat(valores.comissao.toString()) / 100,
+    };
     api
-    .put(`/vendedor/${id}`, getValues())
+    .put(`/vendedor/${id}`, dadosConvertidos)
     .then(() => {
       mutate("/vendedor");
       setLoader(false);
-      goBack()
+      goBack();
     })
     .finally(() => {
       setLoader(false);
@@ -161,9 +176,9 @@ export default function VendedorForm() {
             </label>
 
             <label className="flex flex-col">
-              <span>Recebimento: </span>
-              <input disabled={loader} type="text" {...register("recebimento")} placeholder="" className="input" />
-              {errors.recebimento && <p className="text-xs text-red-500 mt-1">O campo não deve ser nulo</p>}
+              <span>Comissao: </span>
+              <input disabled={loader} type="text" {...register("comissao")} placeholder="" className="input" />
+              {errors.comissao && <p className="text-xs text-red-500 mt-1">O campo não deve ser nulo</p>}
             </label>
 
             <button className="bg-pink-500 px-4 py-2 text-white rounded-lg float-right" disabled={isLoading || loader}>

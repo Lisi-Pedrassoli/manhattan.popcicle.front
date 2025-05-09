@@ -28,7 +28,6 @@ export default function Sidebar() {
           <Link to="/receitas" className={`hover:bg-pink-700 px-4 py-2 rounded-lg ${location.pathname.includes("/receitas") ? "bg-pink-700" : ""}`}>Receitas</Link>
           <Link to="/producoes" className={`hover:bg-pink-700 px-4 py-2 rounded-lg ${location.pathname.includes("/producoes") ? "bg-pink-700" : ""}`}>Produções</Link>
           <Link to="/vendedores" className={`hover:bg-pink-700 px-4 py-2 rounded-lg ${location.pathname.includes("/vendedores") ? "bg-pink-700" : ""}`}>Vendedores</Link>
-          <Link to="/clientes" className={`hover:bg-pink-700 px-4 py-2 rounded-lg ${location.pathname.includes("/clientes") ? "bg-pink-700" : ""}`}>Clientes</Link>
           <Link to="/vendas" className={`hover:bg-pink-700 px-4 py-2 rounded-lg ${location.pathname.includes("/vendas") ? "bg-pink-700" : ""}`}>Vendas</Link>
         </nav>
 

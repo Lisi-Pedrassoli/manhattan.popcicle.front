@@ -1,10 +1,10 @@
 import api from "../../utils/api";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { Plus, Pencil } from "lucide-react";
 import { TipoProdutoType } from "../../utils/types";
 import Skeleton from "../../components/common/skeleton";
 import EmptyList from "../../components/common/empty";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { AxiosResponse } from "axios";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/table";
 import { Status } from "../../components/common/status";
@@ -13,18 +13,33 @@ import { toBrl } from "../../utils/utils";
 
 export default function TiposProdutos() {
   const itemsPerPage = 10;
-  const [loader] = useState(false)
+  const [loade, setLoader] = useState(false)
+  const location = useLocation();//isso também
   const [, setDeleteConfirmationId] = useState("")
-
   const [currentPage, setCurrentPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const { data: tipoProduto, isLoading } = useSWR<AxiosResponse<TipoProdutoType[]>>(`/tipo-produto?page=${currentPage}&items=${itemsPerPage}`, api.get);
+  const { data: tipoProduto, isLoading } = useSWR<AxiosResponse<TipoProdutoType[]>>(`/tipo-produto?page=${currentPage}&items=${itemsPerPage}`, api.get);//pega aqui para por la 
 
   useEffect(() => {
     api.get("tipo-produto/count").then((response) => setTotalItems(response.data.count));
-  }, []);
+    mutate(`/tipo-produto?page=${currentPage}&items=${itemsPerPage}`)//ele colocou isso aqui
+  }, [location.pathname]);
+
+  function desativarTipoProduto(id: string){
+    setLoader(true)
+    api
+      .delete(`/tipo-produto/${id}`)
+      .then(() => {
+        mutate(`/tipo-produto?page=${currentPage}&items=${itemsPerPage}`);//esse atualiza sozinho
+        setDeleteConfirmationId("")
+        setLoader(false);
+      })
+      .finally(() => {
+        setLoader(false);
+      });
+  }
 
   return (
     <>
@@ -70,8 +85,8 @@ export default function TiposProdutos() {
                       <TableCell>
                       <button
                             type="button"
-                            disabled={loader}
-                            onClick={() => setDeleteConfirmationId(_tipoProduto.id!)}
+                            disabled={loade}
+                            onClick={() => desativarTipoProduto(_tipoProduto.id!)}
                             className="bg-neutral-100 text-neutral-600 hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
                           >
                             <Pencil />
@@ -82,6 +97,7 @@ export default function TiposProdutos() {
                 </TableBody>
               </Table>
 
+              {/* paginação */}
               <div className="flex">
                 <button disabled={currentPage === 0} onClick={() => setCurrentPage((prev) => prev - 1)} className="text-neutral-600 cursor-pointer px-4 py-2 bg-gray-200 rounded-lg mx-1 disabled:opacity-50 text-sm">
                   Anterior

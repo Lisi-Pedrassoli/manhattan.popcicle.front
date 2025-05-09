@@ -102,9 +102,6 @@ export default function Vendas() {
           y += 6;
           doc.text(`Total: ${toBrl(venda.total)}`, 14, y);
           y += 6;
-  
-          doc.text(`Cliente: ${venda.cliente?.nome ?? '---'} (${venda.cliente?.telefone})`, 14, y);
-          y += 6;
           doc.text(`Vendedor: ${venda.vendedor?.nome ?? '---'} (${venda.vendedor?.telefone})`, 14, y);
           y += 8;
   
@@ -179,7 +176,6 @@ export default function Vendas() {
                   <TableHead>Saída</TableHead>
                   <TableHead>Volta</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Cliente</TableHead>
                   <TableHead>Vendedor</TableHead>
                   <TableHead>Produtos</TableHead>
                 </TableRow>
@@ -196,7 +192,6 @@ export default function Vendas() {
                     <TableCell>{venda.produtoVenda.reduce((total, produto) => total + produto.quantidadeSaida, 0)}</TableCell>
                     <TableCell>{venda.produtoVenda.reduce((total, produto) => total + produto.quantidadeVolta, 0)}</TableCell>
                     <TableCell>{convertStatus(venda.status)}</TableCell>
-                    <TableCell className="max-w-52 truncate">{venda.cliente.nome}</TableCell>
                     <TableCell className="max-w-52 truncate">{venda.vendedor.nome}</TableCell>
 
                     <TableCell>
@@ -315,7 +310,7 @@ export default function Vendas() {
                 }}
                 className="w-full bg-pink-400 text-white px-4 py-2 rounded-lg cursor-pointer flex gap-2 items-center justify-center"
               >
-                Endtendi
+                Entendi
               </button>
             </div>
           </div>

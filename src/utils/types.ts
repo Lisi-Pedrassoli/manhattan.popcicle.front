@@ -8,14 +8,6 @@ export type UsuarioType = {
   nome: string;
 }
 
-export type ClienteType = {
-  id?: string;
-  telefone?: string;
-  nome?: string;  
-  documento?: string;  
-  ativo?: boolean
-}
-
 export type TipoProdutoType = {
   id?: string;
   tipo: string;
@@ -108,10 +100,8 @@ export type VendaType = {
   codigo: number;
   total: number;
   status: "OPENED" | "CLOSED" | "CANCELED";
-  clienteId?: string;
   vendedorId?: string;
 
-  cliente: ClienteType;
   vendedor: VendedorType;
   produtoVenda: ProdutoVendaType[];
 }

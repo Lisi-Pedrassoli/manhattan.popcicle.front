@@ -5,17 +5,16 @@ import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import useSWR, { mutate } from "swr";
 import api from "../../utils/api";
-import { ClienteType, ProdutoType, VendaType, VendedorType } from "../../utils/types";
+import {ProdutoType, VendaType, VendedorType } from "../../utils/types";
 
 interface ProdutosSelecionadosProps {
   produtoId: string;
   quantidade: number;
-  nome: string
+  nome: string;
+  quantidadeVolta?: number;
 }
 
-interface FechaVendaProps {
-
-}
+interface FechaVendaProps {}
 
 export default function VendaForm() {
   const route = useNavigate();
@@ -26,13 +25,11 @@ export default function VendaForm() {
   const { handleSubmit, register, getValues, setValue} = useForm<VendaType>();
   const [selectedProdutos, setSelectedProdutos] = useState<ProdutosSelecionadosProps[] | []>([]);
   const { data: venda, isLoading } = useSWR<AxiosResponse<VendaType>>(id && `/venda/${id}`, api.get);
-  const { data: clientes, isLoading: isLoadingClientes } = useSWR<AxiosResponse<ClienteType[]>>(`/cliente`, api.get);
   const { data: vendedores, isLoading: isLoadingVendedores } = useSWR<AxiosResponse<VendedorType[]>>(`/vendedor`, api.get);
   const { data: produtos, isLoading: isLoadingProdutos } = useSWR<AxiosResponse<ProdutoType[]>>(`/produto`, api.get);
 
   if (id) {
     setValue("id", id);
-    setValue("clienteId", venda?.data.cliente.id);
     setValue("vendedorId", venda?.data.vendedor.id);
     setValue("status", venda?.data.status!);
   }
@@ -47,7 +44,8 @@ export default function VendaForm() {
     const produtosSelecionados = venda?.data.produtoVenda.map((item) => ({
       produtoId: item.id,
       quantidade: item.quantidadeSaida,
-      nome: item.nome
+      nome: item.nome,
+      quantidadeVolta: item.quantidadeVolta
     }));
 
     if(produtosSelecionados) {
@@ -101,6 +99,17 @@ export default function VendaForm() {
   function atualizarQuantidade(produtoId: string, quantidade: number) {
     setSelectedProdutos(selectedProdutos.map((prod) => prod.produtoId === produtoId ? { ...prod, quantidade } : prod));
   }
+  
+  async function atualizarSaida(produtoId: string, quantidadeVolta: number) {
+    const atualizados = selectedProdutos.map(produto => {
+      if (produto.produtoId === produtoId) {
+        console.log("Atualizando produto:", produto);
+        return { ...produto, quantidadeVolta };
+      }
+      return produto;
+    });
+    setSelectedProdutos(atualizados);
+  }
 
   function retornaEstoque(produtoId: string) {
     if(produtos?.data.length) {
@@ -126,7 +135,6 @@ export default function VendaForm() {
     setLoader(true);
 
     const data = {
-      clienteId: getValues("clienteId"),
       vendedorId: getValues("vendedorId"),
       produtoVenda: selectedProdutos.map((produto) => ({
         productId: produto.produtoId,
@@ -147,15 +155,21 @@ export default function VendaForm() {
 
   async function fechaVenda() {
     setLoader(true);
+    console.log(selectedProdutos)
+//  return;
 
     const data: FechaVendaProps[] = [];
     
     venda?.data.produtoVenda.map((prod) => {
-      data.push({
-        produtoVendaId: prod.id,
-        quantidadeVolta: prod.quantidadeVolta
+      selectedProdutos.map((selected) => {
+        if(selected.produtoId === prod.id) {
+          data.push({
+            produtoVendaId: selected.produtoId,
+            quantidadeVolta: selected.quantidadeVolta
+          })
+        }
       })
-    })
+    })//o que faz a quantidade volta aparecer na venda
     
     await api.post(`/venda/${venda?.data.id}`, {produtosVenda: data})
     .then(() => {
@@ -228,27 +242,6 @@ export default function VendaForm() {
             )}
 
             <label className="flex flex-col">
-              <span>Cliente:</span>
-
-              {!id ? (
-                !isLoadingClientes ? (
-                  <select {...register("clienteId", { required: true })} className="input w-full">
-                    {clientes?.data.length && (
-                      <>
-                        <option value="">Selecione um cliente</option>
-                        {clientes?.data.map((cliente) => <option key={cliente.id} value={cliente.id}>{cliente.nome}</option>)}
-                      </>
-                    )}
-                  </select>
-                ) : (
-                  <span className="text-sm text-neutral-700">{isLoadingClientes ? <span className="flex items-center gap-2 mt-2">Aguarde <Loader2 className="animate-spin" /></span> : "Nenhuma cliente encontrado"}</span>
-                )
-              ) : (
-                <input type="text" value={venda?.data.cliente.nome} disabled className="w-full text-neutral-500" />
-              )}
-            </label>
-
-            <label className="flex flex-col">
               <span>Vendedor:</span>
                 {!id ? (
                   !isLoadingVendedores ? (
@@ -297,7 +290,15 @@ export default function VendaForm() {
                     {!id ? (
                       <input type="number" min="1" max={retornaEstoque(produto.produtoId)} value={produto.quantidade} onChange={(e) => atualizarQuantidade(produto.produtoId, parseInt(e.target.value))} className="w-16 border border-pink-300 rounded-lg px-1 text-center" />
                     ) : (
-                      <input type="number" disabled value={produto.quantidade} className="w-16 border border-pink-300 rounded-lg px-1 text-center" />
+                      <>
+                      <input type="number" defaultValue={produto.quantidade} className="w-16 border border-pink-300 rounded-lg px-1 text-center" />
+                      <input
+                        onChange={(e) => atualizarSaida(produto.produtoId, parseInt(e.target.value))} 
+                        type="number" 
+                        defaultValue={produto.quantidadeVolta} 
+                        className="w-16 border border-pink-300 rounded-lg px-1 text-center" 
+                      />
+                      </>
                     )}
                   </div>
 
@@ -313,8 +314,10 @@ export default function VendaForm() {
             {!id && (
               <button className="bg-pink-500 px-4 py-2 text-white rounded-lg float-right" disabled={isLoading || loader}>
                 {loader ? <Loader2 className="animate-spin" /> : "Salvar"}
-              </button>
+              </button>   
             )}
+           
+            
           </form>
         </div>
       </div>

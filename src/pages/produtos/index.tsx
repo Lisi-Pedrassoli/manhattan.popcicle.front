@@ -1,8 +1,8 @@
 import { AxiosResponse } from "axios";
 import { File, Loader2, Pencil, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
-import useSWR from "swr";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import useSWR, { mutate } from "swr";
 import EmptyList from "../../components/common/empty";
 import Skeleton from "../../components/common/skeleton";
 import { Status } from "../../components/common/status";
@@ -16,6 +16,7 @@ import { toBrl } from "../../utils/utils";
 export default function Produtos() {
   const itemsPerPage = 10;
   const [loader, setLoader] = useState(false);
+  const location = useLocation();
   const [, setDeleteConfirmationId] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
@@ -29,7 +30,9 @@ export default function Produtos() {
   
   useEffect(() => {
     api.get("produto/count").then((response) => setTotalItems(response.data.count));
-  }, [])
+    mutate(`/produto?page=${currentPage}&items=${itemsPerPage}`)
+    console.log("entrei aqui")
+  }, [location.pathname])
 
   function gerarRelatorioPDF() {
     if(start == 0 || end == 0) {

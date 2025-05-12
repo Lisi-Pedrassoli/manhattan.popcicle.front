@@ -1,7 +1,7 @@
 import { AxiosResponse } from "axios";
 import { Plus, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import useSWR, { mutate } from "swr";
 import EmptyList from "../../components/common/empty";
 import Skeleton from "../../components/common/skeleton";
@@ -13,6 +13,7 @@ import { UsuarioType } from "../../utils/types";
 export default function Usuarios() {
   const itemsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(0);
+  const location = useLocation();
   const [totalItems, setTotalItems] = useState(0);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const navigate = useNavigate()
@@ -21,8 +22,8 @@ export default function Usuarios() {
   
   useEffect(() => {
     api.get("usuario/count").then((response) => setTotalItems(response.data.count));
-    mutate("/usuario");
-  }, [])
+    mutate(`/usuario?page=${currentPage}&items=${itemsPerPage}`)
+  }, [location.pathname])
 
 
   return (

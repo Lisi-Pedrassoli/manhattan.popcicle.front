@@ -1,8 +1,8 @@
 import { AxiosResponse } from "axios";
 import { Plus, Pencil, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
-import useSWR from "swr";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import useSWR, { mutate } from "swr";
 import EmptyList from "../../components/common/empty";
 import Skeleton from "../../components/common/skeleton";
 import { Status } from "../../components/common/status";
@@ -13,6 +13,7 @@ import { ReceitaType } from "../../utils/types";
 export default function Receitas() {
   const itemsPerPage = 10;
   const [loader] = useState(false);
+  const location = useLocation();
   const [, setDeleteConfirmationId] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
@@ -24,7 +25,8 @@ export default function Receitas() {
   
   useEffect(() => {
     api.get("produto/count").then((response) => setTotalItems(response.data.count));
-  }, [])
+    mutate (`/receita?page=${currentPage}&items=${itemsPerPage}`)
+  }, [location.pathname])
 
   function abrirModal(materiasPrimas: any[]) {
     setSelectedMateriasPrimas(materiasPrimas);

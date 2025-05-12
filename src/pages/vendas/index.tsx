@@ -1,8 +1,8 @@
 import { AxiosResponse } from "axios";
 import { File, Loader2, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
-import useSWR from "swr";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import useSWR, { mutate } from "swr";
 import Skeleton from "../../components/common/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/table";
 import api from "../../utils/api";
@@ -13,6 +13,7 @@ import jsPDF from "jspdf";
 export default function Vendas() {
   const itemsPerPage = 10;
   const [loader, setLoader] = useState(false);
+  const location = useLocation ();
   const [currentPage, setCurrentPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -27,7 +28,8 @@ export default function Vendas() {
 
   useEffect(() => {
     api.get("/venda/count").then((response) => setTotalItems(response.data.count));
-  }, []);
+    mutate(`/venda?page=${currentPage}&items=${itemsPerPage}`)
+  }, [location.pathname]);
 
   function convertStatus(status: string) {
     switch (status)

@@ -4,7 +4,7 @@ import autoTable from "jspdf-autotable";
 
 import { CheckCircle, File, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import useSWR, { mutate } from "swr";
 import EmptyList from "../../components/common/empty";
 import Skeleton from "../../components/common/skeleton";
@@ -17,6 +17,7 @@ import { formatPhone, toBrl } from "../../utils/utils";
 export default function Vendedores() {
   const itemsPerPage = 10;
   const [loader, setLoader] = useState(false);
+  const location = useLocation ();
   const [deleteConfirmationId, setDeleteConfirmationId] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
@@ -28,10 +29,9 @@ export default function Vendedores() {
   const { data: vendedores, isLoading } = useSWR<AxiosResponse<VendedorType[]>>(`/vendedor?page=${currentPage}&items=${itemsPerPage}`, api.get);
 
   useEffect(() => {
-    api.get("vendedor/count").then((response) => {
-      setTotalItems(response.data.count);
-    });
-  }, []);
+    api.get("vendedor/count").then((response) => {setTotalItems(response.data.count);});
+    mutate(`/vendedor?page=${currentPage}&items=${itemsPerPage}`)
+  }, [location.pathname]);
 
   function desativarVendedor() {
     setLoader(true);

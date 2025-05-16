@@ -87,7 +87,7 @@ export default function ProdutoForm() {
                 <ArrowLeft size={20} />
               </button>
 
-              <h2 className="font-bold text-xl mb-1">Matéria Prima</h2>
+              <h2 className="font-bold text-xl mb-1">Produto</h2>
             </div>
           </div>
 

@@ -18,15 +18,26 @@ export default function ProducaoForm() {
   const { data: producoes, isLoading: isLoadingProducoes } = useSWR<AxiosResponse<ProducaoType>>(id && `/producao/${id}`,api.get);
   const { data: receitas, isLoading: isLoadingReceitas } = useSWR<AxiosResponse<ReceitaType[]>>(`/receita`, api.get);
 
-  if (id) {
-    setValue("id", id);
-    setValue("ativo", producoes?.data.ativo!);
-
-    const vencimentoDate = parseDate(producoes?.data.vencimento!);
-    if(vencimentoDate) {
-      setValue("vencimento", vencimentoDate.toISOString().split("T")[0]);
+  useEffect(() =>{
+    if (id) {
+      setValue("id", id);
+      setValue("ativo", producoes?.data.ativo!);
+  
+      const vencimentoDate = parseDate(producoes?.data.vencimento!);
+      if(vencimentoDate) {
+        setValue("vencimento", vencimentoDate.toISOString().split("T")[0]);
+      }
     }
-  }
+  },[id,producoes, setValue]);
+  // if (id) {
+  //   setValue("id", id);
+  //   setValue("ativo", producoes?.data.ativo!);
+
+  //   const vencimentoDate = parseDate(producoes?.data.vencimento!);
+  //   if(vencimentoDate) {
+  //     setValue("vencimento", vencimentoDate.toISOString().split("T")[0]);
+  //   }
+  // }
 
   useEffect(() => {
     setTimeout(() => {
@@ -59,7 +70,7 @@ export default function ProducaoForm() {
     setSelectedReceitas(selectedReceitas.map((r) => r.receitaId === receitaId ? { ...r, quantidade } : r));
   }
   
-  function parseDate(dateString: string): Date {
+  function parseDate(dateString: string) {
     const [day, month, year] = dateString.split("/").map(Number);
     return new Date(year, month - 1, day);
   }

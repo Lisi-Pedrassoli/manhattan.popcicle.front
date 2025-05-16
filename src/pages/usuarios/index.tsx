@@ -22,7 +22,7 @@ export default function Usuarios() {
   
   useEffect(() => {
     api.get("usuario/count").then((response) => setTotalItems(response.data.count));
-    mutate(`/usuario?page=${currentPage}&items=${itemsPerPage}`)
+    mutate(`/usuario?page=${currentPage}&items=${itemsPerPage}`, undefined, { revalidate: true });
   }, [location.pathname])
 
 

@@ -28,7 +28,7 @@ export default function Vendas() {
 
   useEffect(() => {
     api.get("/venda/count").then((response) => setTotalItems(response.data.count));
-    mutate(`/venda?page=${currentPage}&items=${itemsPerPage}`)
+    mutate(`/venda?page=${currentPage}&items=${itemsPerPage}`, undefined, { revalidate: true });
   }, [location.pathname]);
 
   function convertStatus(status: string) {

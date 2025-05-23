@@ -156,7 +156,6 @@ export default function VendaForm() {
   async function fechaVenda() {
     setLoader(true);
     console.log(selectedProdutos)
-//  return;
 
     const data: FechaVendaProps[] = [];
     

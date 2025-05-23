@@ -6,6 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import useSWR, { mutate } from "swr";
 import api from "../../utils/api";
 import { MateriaPrimaType, ProdutoType, ReceitaType } from "../../utils/types";
+import { conversorUnidadeMedida } from "../../components/materia-prima/unidade";
 
 export default function ReceitaForm() {
   const route = useNavigate();
@@ -13,7 +14,8 @@ export default function ReceitaForm() {
   const [loader, setLoader] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedMateriasPrimas, setSelectedMateriasPrimas] = useState<MateriaPrimaType[]>([]);
-  
+  const [quantidade, setQuantidades] = useState<Record<string, number>>({});
+
   const { id } = useParams();
   const { handleSubmit, register, getValues, formState: { errors } } = useForm<any>();
   const { data: receitas, isLoading: isLoadingReceitas } = useSWR<AxiosResponse<ReceitaType>>(id && `/receita/${id}`, api.get);
@@ -26,7 +28,15 @@ export default function ReceitaForm() {
     }, 1);
 
     if (id && receitas?.data.receitaMateriaPrima) {
-      setSelectedMateriasPrimas(receitas.data.receitaMateriaPrima.map((item: any) => item.materiaPrima));
+      const materiasPrimas = receitas.data.receitaMateriaPrima.map((item: any) => item.materiaPrima);
+      setSelectedMateriasPrimas(materiasPrimas);
+
+      // Carrega as quantidades existentes
+      const quantidadesIniciais = receitas.data.receitaMateriaPrima.reduce((acc: Record<string, number>, item: any) => {
+        acc[item.materiaPrima.id] = item.quantidade;
+        return acc;
+      }, {});
+      setQuantidades(quantidadesIniciais);
     }
   }, [id, receitas]);
 
@@ -42,17 +52,45 @@ export default function ReceitaForm() {
   function toggleMateriaPrima(materiaPrima: MateriaPrimaType) {
     setSelectedMateriasPrimas((prev) => {
       const exists = prev.some((mp) => mp.id === materiaPrima.id);
-      return exists ? prev.filter((mp) => mp.id !== materiaPrima.id) : [...prev, materiaPrima];
+      if (exists) {
+        const newQuantidades = { ...quantidade };
+        delete newQuantidades[materiaPrima.id];
+        setQuantidades(newQuantidades);
+        return prev.filter((mp) => mp.id !== materiaPrima.id);
+      } else {
+        setQuantidades({ ...quantidade, [materiaPrima.id]: 0 });
+        return [...prev, materiaPrima];
+      }
     });
+  }
+
+  function handleQuantidadeChange(materiaPrimaId: string, value: string) {
+    const numericValue = parseFloat(value) || 0;
+    setQuantidades(prev => ({
+      ...prev,
+      [materiaPrimaId]: numericValue
+    }));
   }
 
   function criarReceita() {
     setLoader(true);
+
+    // Verifica se todas as matérias-primas selecionadas têm quantidade > 0
+    const hasInvalidQuantity = selectedMateriasPrimas.some(mp =>
+      !quantidade[mp.id] || quantidade[mp.id] <= 0
+    );
+
+    if (hasInvalidQuantity) {
+      alert("Por favor, insira uma quantidade válida (maior que zero) para todas as matérias-primas selecionadas.");
+      setLoader(false);
+      return;
+    }
+
     const data = {
       produto_id: getValues("produto_id"),
       receitaMateriaPrimaList: selectedMateriasPrimas.map((mp) => ({
         materiaPrima_id: mp.id,
-        quantidade: getValues(`quantidade-${mp.id}`) || 0,
+        quantidade: quantidade[mp.id]
       })),
     };
 
@@ -63,21 +101,43 @@ export default function ReceitaForm() {
         setLoader(false);
         goBack();
       })
-      .finally(() => {
+      .catch((error) => {
+        console.error("Erro ao criar receita:", error);
         setLoader(false);
       });
   }
 
   function atualizarReceita() {
     setLoader(true);
+
+    // Verifica se todas as matérias-primas selecionadas têm quantidade > 0
+    const hasInvalidQuantity = selectedMateriasPrimas.some(mp =>
+      !quantidade[mp.id] || quantidade[mp.id] <= 0
+    );
+
+    if (hasInvalidQuantity) {
+      alert("Por favor, insira uma quantidade válida (maior que zero) para todas as matérias-primas selecionadas.");
+      setLoader(false);
+      return;
+    }
+
+    const data = {
+      produto_id: getValues("produto_id"),
+      receitaMateriaPrimaList: selectedMateriasPrimas.map((mp) => ({
+        materiaPrima_id: mp.id,
+        quantidade: quantidade[mp.id]
+      })),
+    };
+
     api
-      .put(`/receita/${id}`, getValues())
+      .put(`/receita/${id}`, data)
       .then(() => {
         mutate("/receita");
         setLoader(false);
         goBack();
       })
-      .finally(() => {
+      .catch((error) => {
+        console.error("Erro ao atualizar receita:", error);
         setLoader(false);
       });
   }
@@ -100,27 +160,30 @@ export default function ReceitaForm() {
           <form onSubmit={handleSubmit(id ? () => atualizarReceita() : () => criarReceita())} className="px-5 space-y-3">
             <label className="flex flex-col">
               <span>Produto:</span>
-
               <select disabled={loader || isLoadingProdutos} {...register("produto_id", { required: true })} className="input w-full">
                 <option value="">Selecione um produto</option>
                 {produtos?.data.map((produto) => (
                   <option key={produto.id} value={produto.id}>{produto.nome}</option>
                 ))}
               </select>
-
               {errors.produto && <p className="text-xs text-red-500 mt-1">Selecione um produto</p>}
             </label>
 
             <div>
               <label className="flex flex-col">
-              {selectedMateriasPrimas.length > 0 && <span className="mb-2">Matérias-Primas:</span>}
-
+                {selectedMateriasPrimas.length > 0 && <span className="mb-2">Matérias-Primas:</span>}
                 <div className="flex flex-wrap gap-2">
-                  {selectedMateriasPrimas.map((mp) => (
-                    <span key={mp.id} className="bg-pink-200 text-pink-800 px-2 py-1 rounded-lg text-xs">{mp.nome}</span>
+                  {id && receitas?.data.receitaMateriaPrima.map((mp: any) => (
+                    <span key={mp.materiaPrima.id} className="bg-pink-200 text-pink-800 px-2 py-1 rounded-lg text-xs">
+                      {mp.materiaPrima.nome} ({mp.quantidadeMP}{"-"}{conversorUnidadeMedida(mp.materiaPrima.unidadeMedida)})
+                    </span>
+                  ))}
+                  {!id && selectedMateriasPrimas.map((mp: any) => (
+                    <span key={mp.id} className="bg-pink-200 text-pink-800 px-2 py-1 rounded-lg text-xs">
+                      {mp.nome} ({quantidade[mp.id]}{"-"}{conversorUnidadeMedida(mp.unidadeMedida)})
+                    </span>
                   ))}
                 </div>
-
                 {!selectedMateriasPrimas.length && <span className="text-sm text-neutral-700">Nenhuma matéria prima selecionada</span>}
               </label>
 
@@ -138,7 +201,7 @@ export default function ReceitaForm() {
 
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-2">
               <h2 className="text-lg font-bold">Selecionar Matérias-Primas</h2>
               <button onClick={() => setModalOpen(false)} className="text-gray-600 hover:text-gray-900">
@@ -146,16 +209,42 @@ export default function ReceitaForm() {
               </button>
             </div>
 
-            <div className="flex flex-wrap gap-2 mt-4">
+            <div className="space-y-4 mt-4">
               {materiasPrimas?.data.map((mp) => (
-                <button
-                  key={mp.id}
-                  onClick={() => toggleMateriaPrima(mp)}
-                  className={`px-2 py-1 rounded-lg text-xs cursor-pointer ${selectedMateriasPrimas.some((m) => m.id === mp.id) ? "bg-pink-500 text-white" : "bg-pink-200 text-pink-800"}`}
-                >
-                  {mp.nome}
-                </button>
+                <div key={mp.id} className="flex items-center justify-between gap-2">
+                  <button
+                    onClick={() => toggleMateriaPrima(mp)}
+                    className={`px-2 py-1 rounded-lg text-xs cursor-pointer flex-1 text-left ${selectedMateriasPrimas.some((m) => m.id === mp.id)
+                        ? "bg-pink-500 text-white"
+                        : "bg-pink-200 text-pink-800"
+                      }`}
+                  >
+                    {mp.nome} ({conversorUnidadeMedida(mp.unidadeMedida)})
+                  </button>
+
+                  {selectedMateriasPrimas.some((m) => m.id === mp.id) && (
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={quantidade[mp.id] || ''}
+                      onChange={(e) => handleQuantidadeChange(mp.id, e.target.value)}
+                      className="w-20 border rounded px-2 py-1 text-sm"
+                      placeholder="Qtd"
+                    />
+                  )}
+
+                </div>
               ))}
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setModalOpen(false)}
+                className="bg-pink-500 text-white px-4 py-2 rounded-lg"
+              >
+                Confirmar
+              </button>
             </div>
           </div>
         </div>

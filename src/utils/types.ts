@@ -20,15 +20,16 @@ export type ProdutoType = {
   nome: string;
   estoque: number | null;
   ativo: boolean;
-  tipoProduto: TipoProdutoType;
+  tipoProduto: TipoProdutoType | null;
 }
 
 export type MateriaPrimaType = {
   id: string;
   quantidadeEstoque: number | null;
   nome: string;
-  unidadeMedida: "QUILOGRAMA_KG" | "GRAMA_G" | "TONELADA_T" | "LITRO_L" | "MILILITRO_ML" | "UNIDADE_UN" | "METRO_M" | "CENTIMETRO_CM" | "PACOTE_PCT" | "";
+  unidadeMedida: "KG" | "G" | "T" | "L" | "ML" | "UN" | "M" | "CM" | "PCT" | "";
   ativo: boolean;
+  quantidadeReceita: number | null;
 }
 
 export type VendedorType = {

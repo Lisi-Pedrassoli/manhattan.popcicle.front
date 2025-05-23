@@ -14,30 +14,21 @@ export default function ProducaoForm() {
   const [selectedReceitas, setSelectedReceitas] = useState<{ receitaId: string; quantidade: number; nome: string }[]>([]);
 
   const { id } = useParams();
-  const {handleSubmit, register, getValues, setValue} = useForm<ProducaoType>();
-  const { data: producoes, isLoading: isLoadingProducoes } = useSWR<AxiosResponse<ProducaoType>>(id && `/producao/${id}`,api.get);
+  const { handleSubmit, register, getValues, setValue } = useForm<ProducaoType>();
+  const { data: producoes, isLoading: isLoadingProducoes } = useSWR<AxiosResponse<ProducaoType>>(id && `/producao/${id}`, api.get);
   const { data: receitas, isLoading: isLoadingReceitas } = useSWR<AxiosResponse<ReceitaType[]>>(`/receita`, api.get);
 
-  useEffect(() =>{
-    if (id) {
+  useEffect(() => {
+    if (id && producoes?.data) {
       setValue("id", id);
-      setValue("ativo", producoes?.data.ativo!);
-  
-      const vencimentoDate = parseDate(producoes?.data.vencimento!);
-      if(vencimentoDate) {
+      setValue("ativo", producoes.data.ativo);
+
+      const vencimentoDate = parseDate(producoes.data.vencimento);
+      if (vencimentoDate) {
         setValue("vencimento", vencimentoDate.toISOString().split("T")[0]);
       }
     }
-  },[id,producoes, setValue]);
-  // if (id) {
-  //   setValue("id", id);
-  //   setValue("ativo", producoes?.data.ativo!);
-
-  //   const vencimentoDate = parseDate(producoes?.data.vencimento!);
-  //   if(vencimentoDate) {
-  //     setValue("vencimento", vencimentoDate.toISOString().split("T")[0]);
-  //   }
-  // }
+  }, [id, producoes, setValue]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -67,9 +58,11 @@ export default function ProducaoForm() {
   }
 
   function atualizarQuantidade(receitaId: string, quantidade: number) {
-    setSelectedReceitas(selectedReceitas.map((r) => r.receitaId === receitaId ? { ...r, quantidade } : r));
+    setSelectedReceitas(
+      selectedReceitas.map((r) => (r.receitaId === receitaId ? { ...r, quantidade } : r))
+    );
   }
-  
+
   function parseDate(dateString: string) {
     const [day, month, year] = dateString.split("/").map(Number);
     return new Date(year, month - 1, day);
@@ -87,64 +80,77 @@ export default function ProducaoForm() {
   function criarProducao() {
     setLoader(true);
 
-    const dataAtual = new Date().toLocaleDateString('pt-br')
-    let formattedDate = new Date(getValues("vencimento"));
-    formattedDate.setDate(formattedDate.getDate() + 1);
-    const dataVencimento = new Date(formattedDate).toLocaleDateString('pt-br');
+    const dataAtual = new Date().toLocaleDateString("pt-BR");
+    const vencimentoInput = new Date(getValues("vencimento"));
+    vencimentoInput.setDate(vencimentoInput.getDate() + 1);
+    const dataVencimento = vencimentoInput.toLocaleDateString("pt-BR");
 
     const data = {
-      dataAtual: dataAtual,
+      dataAtual,
       vencimento: dataVencimento,
-      receita:  selectedReceitas.map((receita) => ({
-        receitaId: receita.receitaId,
-        quantidade: receita.quantidade,
-      }))
-    }
+      receita: selectedReceitas.map((r) => ({
+        receitaId: r.receitaId,
+        quantidade: r.quantidade,
+      })),
+    };
 
     api
-    .post("/producao", data)
-    .then(() => {
-      mutate("/producao");
-      setLoader(false);
-      goBack()
-    })
-    .finally(() => {
-      setLoader(false);
-    });
+      .post("/producao", data)
+      .then(() => {
+        mutate("/producao");
+        goBack();
+      })
+      .finally(() => {
+        setLoader(false);
+      });
   }
 
   function atualizarProducao() {
     setLoader(true);
 
+    const vencimentoInput = new Date(getValues("vencimento"));
+    vencimentoInput.setDate(vencimentoInput.getDate() + 1);
+    const dataVencimento = vencimentoInput.toLocaleDateString("pt-BR");
+
+    const data = {
+      vencimento: dataVencimento,
+      ativo: String(getValues("ativo")) === "true",
+      receita: selectedReceitas.map((r) => ({
+        receitaId: r.receitaId,
+        quantidade: r.quantidade,
+      })),
+    };
+
     api
-    .put(`/producao/${id}`)
-    .then(() => {
-      mutate("/producao");
-      setLoader(false);
-      goBack()
-    })
-    .finally(() => {
-      setLoader(false);
-    });
+      .put(`/producao/${id}`, data)
+      .then(() => {
+        mutate("/producao");
+        goBack();
+      })
+      .catch((err) => {
+        console.error("Erro ao atualizar produção:", err);
+      })
+      .finally(() => {
+        setLoader(false);
+      });
   }
 
   return (
     <>
-      <div className="w-screen h-screen bg-black/50 overflow-y-auto inset-0 absolute z-40" onClick={() => goBack()} />
+      <div className="w-screen h-screen bg-black/50 overflow-y-auto inset-0 absolute z-40" onClick={goBack} />
 
-      <div className={`${ visibility ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"} z-50 flex w-full h-full justify-end transition-all duration-200 absolute inset-0 pointer-events-none`}>
+      <div className={`${visibility ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"} z-50 flex w-full h-full justify-end transition-all duration-200 absolute inset-0 pointer-events-none`}>
         <div className="bg-pink-100 z-50 overflow-y-auto scrollbar-thin scrollbar-track-neutral-200 scrollbar-thumb-neutral-300 min-w-80 max-w-sm w-full rounded-l-xl pointer-events-auto">
           <div className="p-4">
             <div className="flex items-center gap-2">
-              <button disabled={loader} onClick={() => goBack()} className="hover:bg-neutral-200 rounded-lg p-1" data-action="go-back">
+              <button disabled={loader} onClick={goBack} className="hover:bg-neutral-200 rounded-lg p-1" data-action="go-back">
                 <ArrowLeft size={20} />
               </button>
-
-              <h2 className="font-bold text-xl mb-1">Prodção</h2>
+              <h2 className="font-bold text-xl mb-1">Produção</h2>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit(id ? () => atualizarProducao() : () => criarProducao())} className="px-5 space-y-3">
+          <form onSubmit={handleSubmit(id ? atualizarProducao : criarProducao)} className="px-5 space-y-3">
             <label className="flex flex-col">
               <span>Status:</span>
               <select {...register("ativo", { required: true })} className="input w-full">
@@ -160,33 +166,47 @@ export default function ProducaoForm() {
 
             <label className="flex flex-col">
               <span>Receitas:</span>
-
               {receitas?.data.length ? (
-                <select onChange={(e) => adicionarReceita(e.target.value, e.target.options[e.target.selectedIndex].text)} className="input w-full">
+                <select
+                  onChange={(e) => adicionarReceita(e.target.value, e.target.options[e.target.selectedIndex].text)}
+                  className="input w-full"
+                >
                   <option value="">Selecione uma receita</option>
-
                   {receitas.data
-                  .filter((receita) => !selectedReceitas.some((selected) => selected.receitaId === receita.id))
-                  .map((receita) => (
-                    <option key={receita.id} value={receita.id}>
-                      {receita.produto.nome}
-                    </option>
-                  ))}
+                    .filter((r) => !selectedReceitas.some((s) => s.receitaId === r.id))
+                    .map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.produto.nome}
+                      </option>
+                    ))}
                 </select>
               ) : (
-                <span className="text-sm text-neutral-700">{isLoadingReceitas ? <span className="flex items-center gap-2 mt-2">Aguarde <Loader2 className="animate-spin" /></span> : "Nenhuma receita encontrada"}</span>
+                <span className="text-sm text-neutral-700">
+                  {isLoadingReceitas ? (
+                    <span className="flex items-center gap-2 mt-2">
+                      Aguarde <Loader2 className="animate-spin" />
+                    </span>
+                  ) : (
+                    "Nenhuma receita encontrada"
+                  )}
+                </span>
               )}
             </label>
 
             <div className="flex flex-wrap gap-2">
-              {selectedReceitas.map((receita) => (
-                <div key={receita.receitaId} className="w-full flex items-center gap-2 bg-pink-200 px-2 py-1 rounded-lg">
+              {selectedReceitas.map((r) => (
+                <div key={r.receitaId} className="w-full flex items-center gap-2 bg-pink-200 px-2 py-1 rounded-lg">
                   <div className="flex-1 flex items-center gap-2 justify-between">
-                    <span className="truncate max-w-56">{receita.nome}</span>
-                    <input type="number" min="1" value={receita.quantidade} onChange={(e) => atualizarQuantidade(receita.receitaId, parseInt(e.target.value))} className="w-16 border border-pink-300 rounded-lg px-1 text-center" />
+                    <span className="truncate max-w-56">{r.nome}</span>
+                    <input
+                      type="number"
+                      min="1"
+                      value={r.quantidade}
+                      onChange={(e) => atualizarQuantidade(r.receitaId, parseInt(e.target.value))}
+                      className="w-16 border border-pink-300 rounded-lg px-1 text-center"
+                    />
                   </div>
-
-                  <button type="button" onClick={() => removerReceita(receita.receitaId)} className="text-red-500">
+                  <button type="button" onClick={() => removerReceita(r.receitaId)} className="text-red-500">
                     <X size={16} />
                   </button>
                 </div>

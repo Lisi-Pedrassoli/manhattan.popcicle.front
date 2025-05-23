@@ -66,8 +66,8 @@ export default function Produtos() {
         body: response.data.map((produto: ProdutoType) => [
           produto.nome,
           produto.estoque,
-          produto.tipoProduto.tipo,
-          toBrl(produto.tipoProduto.valor),
+          produto.tipoProduto?.tipo || 'N/A',
+          produto.tipoProduto? toBrl(produto.tipoProduto.valor): 'N/A',
           produto.ativo ? "Sim" : "Não"
         ]),
 
@@ -138,7 +138,9 @@ export default function Produtos() {
                         <Status status={produto.ativo} />
                       </TableCell>
 
-                      <TableCell>{produto.tipoProduto.tipo}</TableCell>
+                      <TableCell>
+                        {produto.tipoProduto?.tipo || 'N/A'}
+                        </TableCell>
 
                       <TableCell>
                       <button

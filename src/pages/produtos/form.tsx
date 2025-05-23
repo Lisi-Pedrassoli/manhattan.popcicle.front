@@ -5,24 +5,47 @@ import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import useSWR, { mutate } from "swr";
 import api from "../../utils/api";
-import { ProdutoType, TipoProdutoType } from "../../utils/types";
+import { TipoProdutoType } from "../../utils/types";
+
+// Novo tipo para o formulário
+interface ProdutoFormType {
+  id?: number;
+  nome: string;
+  estoque: number;
+  ativo: boolean;
+  tipoProdutoId: number;
+}
 
 export default function ProdutoForm() {
   const route = useNavigate();
   const [visibility, setVisibility] = useState(false);
   const [loader, setLoader] = useState(false);
   const { id } = useParams();
-  const {handleSubmit, register, getValues, setValue, formState: { errors }} = useForm<ProdutoType>();
-  const { data, isLoading: isLoadingProduto } = useSWR<AxiosResponse<ProdutoType>>(id && `/produto/${id}`,api.get);
+
+  const {
+    handleSubmit,
+    register,
+    setValue,
+    watch,
+    reset,
+    getValues,
+    formState: { errors },
+  } = useForm<ProdutoFormType>();
+
+  const { data: produtoData, isLoading: isLoadingProduto } = useSWR<AxiosResponse<any>>(id && `/produto/${id}`, api.get);
   const { data: tipoProduto, isLoading: isLoadingTipoProduto } = useSWR<AxiosResponse<TipoProdutoType[]>>("/tipo-produto", api.get);
 
-  if (id) {
-    setValue("ativo", data?.data.ativo!)
-    setValue("id", id)
-    setValue("nome", data?.data.nome!)
-    setValue("estoque", data?.data.estoque!)
-    setValue("tipoProduto", data?.data.tipoProduto!)
-  }
+  useEffect(() => {
+    if (produtoData?.data && tipoProduto?.data) {
+      reset({
+        id: produtoData.data.id,
+        nome: produtoData.data.nome,
+        estoque: produtoData.data.estoque,
+        ativo: produtoData.data.ativo,
+        tipoProdutoId: produtoData.data.tipoProduto?.id || 0,
+      });
+    }
+  }, [produtoData, tipoProduto, reset]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -39,59 +62,35 @@ export default function ProdutoForm() {
     }, 200);
   }
 
-  function criarProduto() {
+  function salvarProduto() {
     setLoader(true);
+    const body = getValues();
+    const url = id ? `/produto/${id}` : "/produto";
+    const method = id ? api.put : api.post;
 
-    const data = {
-      ativo: getValues("ativo"),
-      estoque: getValues("estoque"),
-      nome: getValues("nome"),
-      tipoProdutoId: getValues("tipoProduto")
-    }
-
-    api
-    .post("/produto", data)
-    .then(() => {
-      mutate("/produto");
-      setLoader(false);
-      goBack()
-    })
-    .finally(() => {
-      setLoader(false);
-    });
-  }
-
-  function atualizarProduto() {
-    setLoader(true);
-    api
-    .put(`/produto/${id}`, getValues())
-    .then(() => {
-      mutate("/produto");
-      setLoader(false);
-      goBack()
-    })
-    .finally(() => {
-      setLoader(false);
-    });
+    method(url, body)
+      .then(() => {
+        mutate("/produto");
+        goBack();
+      })
+      .finally(() => setLoader(false));
   }
 
   return (
     <>
-      <div className="w-screen h-screen bg-black/50 overflow-y-auto inset-0 absolute z-40" onClick={() => goBack()} />
-
-      <div className={`${ visibility ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"} z-50 flex w-full h-full justify-end transition-all duration-200 absolute inset-0 pointer-events-none`}>
+      <div className="w-screen h-screen bg-black/50 absolute z-40" onClick={goBack} />
+      <div className={`${visibility ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"} z-50 flex w-full h-full justify-end transition-all duration-200 absolute inset-0 pointer-events-none`}>
         <div className="bg-pink-100 z-50 overflow-y-auto scrollbar-thin scrollbar-track-neutral-200 scrollbar-thumb-neutral-300 min-w-80 max-w-sm w-full rounded-l-xl pointer-events-auto">
           <div className="p-4">
             <div className="flex items-center gap-2">
-              <button disabled={loader} onClick={() => goBack()} className="hover:bg-neutral-200 rounded-lg p-1" data-action="go-back">
+              <button disabled={loader} onClick={goBack} className="hover:bg-neutral-200 rounded-lg p-1">
                 <ArrowLeft size={20} />
               </button>
-
               <h2 className="font-bold text-xl mb-1">Produto</h2>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit(id ? () => atualizarProduto() : () => criarProduto())} className="px-5 space-y-3">
+          <form onSubmit={handleSubmit(salvarProduto)} className="px-5 space-y-3">
             <label className="flex flex-col">
               <span>Status:</span>
               <select {...register("ativo", { required: true })} className="input w-full">
@@ -101,39 +100,42 @@ export default function ProdutoForm() {
             </label>
 
             <label className="flex flex-col">
-              <span>Nome: </span>
-              <input disabled={loader} type="text" {...register("nome", { required: true })} placeholder="Limão..." className="input" />
-              {errors.nome && <p className="text-xs text-red-500 mt-1">O campo não deve ser nulo</p>}
+              <span>Nome:</span>
+              <input disabled={loader} type="text" {...register("nome", { required: true })} className="input" placeholder="Nome do produto" />
+              {errors.nome && <p className="text-xs text-red-500 mt-1">Campo obrigatório</p>}
             </label>
 
             <label className="flex flex-col">
-              <span>Estoque: </span>
+              <span>Estoque:</span>
               <input
                 disabled={loader}
                 type="number"
                 {...register("estoque", {
                   required: true,
-                  validate: (value: number | null) =>
-                    (value != null && Number(value) >= 0) ||
-                    "O valor deve ser positivo",
+                  validate: (value) => value >= 0 || "Deve ser positivo",
                 })}
-                placeholder="10"
                 className="input"
               />
-            
-              {errors.estoque && (<p className="text-xs text-red-500 mt-1">O valor deve ser 0 ou positivo</p>)}
+              {errors.estoque && <p className="text-xs text-red-500 mt-1">{errors.estoque.message}</p>}
             </label>
 
             <label className="flex flex-col">
               <span>Tipo do Produto:</span>
-              <select disabled={loader || isLoadingTipoProduto} {...register("tipoProduto", { required: true })} className="input w-full">
+              <select
+                {...register("tipoProdutoId", { required: true })}
+                value={watch("tipoProdutoId") || ""}
+                onChange={(e) => setValue("tipoProdutoId", Number(e.target.value))}
+                disabled={loader || isLoadingTipoProduto}
+                className="input w-full"
+              >
                 <option value="">Selecione um tipo</option>
-
                 {tipoProduto?.data.map((tipo) => (
-                  <option key={tipo.id} value={tipo.id}>{tipo.tipo} - R$ {tipo.valor?.toFixed(2)}</option>
+                  <option key={tipo.id} value={tipo.id}>
+                    {tipo.tipo} - R$ {tipo.valor?.toFixed(2)}
+                  </option>
                 ))}
               </select>
-              {errors.tipoProduto && <p className="text-xs text-red-500 mt-1">Selecione um tipo de produto</p>}
+              {errors.tipoProdutoId && <p className="text-xs text-red-500 mt-1">Selecione um tipo válido</p>}
             </label>
 
             <button className="bg-pink-500 px-4 py-2 text-white rounded-lg float-right" disabled={isLoadingProduto || loader}>

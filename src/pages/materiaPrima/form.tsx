@@ -124,6 +124,7 @@ export default function MateriaPrimaForm() {
               <input
                 disabled={loader}
                 type="number"
+                step="0.01"
                 {...register("quantidadeEstoque", {
                   required: true,
                   validate: (value: number | null) =>

@@ -18,10 +18,11 @@ export default function Usuarios() {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const navigate = useNavigate()
 
-  const { data: usuarios, isLoading } = useSWR<AxiosResponse<UsuarioType[]>>(`/usuario?page=${currentPage}&items=${itemsPerPage}`, api.get);
+  const { data: usuarios, isLoading, error } = useSWR<AxiosResponse<UsuarioType[]>>(`/usuario?page=${currentPage}&items=${itemsPerPage}`, api.get);
+  console.log(error, 'dfsfds')
   
   useEffect(() => {
-    api.get("usuario/count").then((response) => setTotalItems(response.data.count));
+    api.get("usuario/count").then((response) => setTotalItems(response.data.count)).catch(e=> console.log(e));
     mutate(`/usuario?page=${currentPage}&items=${itemsPerPage}`, undefined, { revalidate: true });
   }, [location.pathname])
 

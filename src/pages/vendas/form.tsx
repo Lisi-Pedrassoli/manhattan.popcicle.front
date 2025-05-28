@@ -34,14 +34,14 @@ export default function VendaForm() {
     setValue("status", venda?.data.status!);
   }
 
-  useEffect(() => {
+  useEffect(() => {//pq isso ta aqui?
     setTimeout(() => {
       setVisibility(true);
     }, 1);
   }, []);
 
   useEffect(() => {
-    const produtosSelecionados = venda?.data.produtoVenda.map((item) => ({
+    const produtosSelecionados = venda?.data.produtoVenda.map((item) => ({//pq isso ta aqui
       produtoId: item.id,
       quantidade: item.quantidadeSaida,
       nome: item.nome,
@@ -73,7 +73,7 @@ export default function VendaForm() {
 
     api.put(`/venda/${id}`, data)
     .then(() => {
-      mutate("/venda");
+      mutate("/venda");//pq não tem await?
       setLoader(false);
       goBack();
     })

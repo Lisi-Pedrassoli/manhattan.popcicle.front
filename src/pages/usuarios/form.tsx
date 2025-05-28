@@ -71,7 +71,7 @@ export default function UsuarioForm() {
     }
 
     api
-    .put(`/usuario`, data)
+    .put(`/usuario/${id}`, data)
     .then(() => {
       mutate("/usuarios");
       setLoader(false);

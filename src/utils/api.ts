@@ -18,17 +18,14 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 });
 
 api.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  (response: AxiosResponse) => { 
+    console.log("xesque");
+    return response 
+  },
   async (error: AxiosError) => {
-    if (!error.response) {
-      console.error("Erro de conexão:", error);
-      return Promise.reject(error);
-    }
-
-    if (error.response.status === 401) {
+    if (error.response?.status === 401) {
       localStorage.removeItem("token");
       window.location.href = `/login`;
-
     }
     return Promise.reject(error);
   }

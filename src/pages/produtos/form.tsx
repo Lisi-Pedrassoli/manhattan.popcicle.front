@@ -25,6 +25,8 @@ export default function ProdutoForm() {
   const {
     handleSubmit,
     register,
+    setValue,
+    watch,
     reset,
     getValues,
     formState: { errors },
@@ -40,7 +42,7 @@ export default function ProdutoForm() {
         nome: produtoData.data.nome,
         estoque: produtoData.data.estoque,
         ativo: produtoData.data.ativo,
-        tipoProdutoId: produtoData.data.tipoProduto?.id ?? 0,
+        tipoProdutoId: produtoData.data.tipoProduto?.id || 0,
       });
     }
   }, [produtoData, tipoProduto, reset]);
@@ -60,23 +62,23 @@ export default function ProdutoForm() {
     }, 200);
   }
 
-  async function salvarProduto() {
-    setLoader(true);// ativa o carregamento
-    const body = getValues();//pega os dados do formulario (que formulario?)
-    const url = id ? `/produto/${id}` : "/produto";//se tiver id é edição e se não tiver é criação
-    const method = id ? api.put : api.post;//com base na linha acima defini se usara um put ou post
+  function salvarProduto() {
+    setLoader(true);
+    const body = getValues();
+    const url = id ? `/produto/${id}` : "/produto";
+    const method = id ? api.put : api.post;
 
-    await method(url, body)//envia os dados ao back
-      .then(async () => {
-        await mutate(`/produto?page=0&items=10`) //atualiza a pagina  
-        goBack();//volta a tela anterior 
+    method(url, body)
+      .then(() => {
+        mutate("/produto");
+        goBack();
       })
-      .finally(() => setLoader(false));//desativa o carregamento
+      .finally(() => setLoader(false));
   }
 
   return (
     <>
-      <div className="w-screen h-screen bg-black/50 absolute z-40 inset-0" onClick={goBack} />
+      <div className="w-screen h-screen bg-black/50 absolute z-40" onClick={goBack} />
       <div className={`${visibility ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"} z-50 flex w-full h-full justify-end transition-all duration-200 absolute inset-0 pointer-events-none`}>
         <div className="bg-pink-100 z-50 overflow-y-auto scrollbar-thin scrollbar-track-neutral-200 scrollbar-thumb-neutral-300 min-w-80 max-w-sm w-full rounded-l-xl pointer-events-auto">
           <div className="p-4">
@@ -121,13 +123,15 @@ export default function ProdutoForm() {
               <span>Tipo do Produto:</span>
               <select
                 {...register("tipoProdutoId", { required: true })}
+                value={watch("tipoProdutoId") || ""}
+                onChange={(e) => setValue("tipoProdutoId", Number(e.target.value))}
                 disabled={loader || isLoadingTipoProduto}
                 className="input w-full"
               >
                 <option value="">Selecione um tipo</option>
                 {tipoProduto?.data.map((tipo) => (
                   <option key={tipo.id} value={tipo.id}>
-                    {tipo.tipo} - R$ {tipo.valor}
+                    {tipo.tipo} - R$ {tipo.valor?.toFixed(2)}
                   </option>
                 ))}
               </select>

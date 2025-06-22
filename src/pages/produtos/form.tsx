@@ -20,6 +20,7 @@ export default function ProdutoForm() {
   const route = useNavigate();
   const [visibility, setVisibility] = useState(false);
   const [loader, setLoader] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const { id } = useParams();
 
   const {
@@ -35,17 +36,17 @@ export default function ProdutoForm() {
   const { data: produtoData, isLoading: isLoadingProduto } = useSWR<AxiosResponse<any>>(id && `/produto/${id}`, api.get);
   const { data: tipoProduto, isLoading: isLoadingTipoProduto } = useSWR<AxiosResponse<TipoProdutoType[]>>("/tipo-produto", api.get);
 
-  useEffect(() => {
-    if (produtoData?.data && tipoProduto?.data) {
-      reset({
-        id: produtoData.data.id,
-        nome: produtoData.data.nome,
-        estoque: produtoData.data.estoque,
-        ativo: produtoData.data.ativo,
-        tipoProdutoId: produtoData.data.tipoProduto?.id || 0,
-      });
-    }
-  }, [produtoData, tipoProduto, reset]);
+ useEffect(() => {
+  if (produtoData?.data && tipoProduto?.data) {
+    reset({
+      id: produtoData.data.id,
+      nome: produtoData.data.nome,
+      estoque: produtoData.data.estoque,
+      ativo: produtoData.data.ativo, // Mantém o valor booleano original
+      tipoProdutoId: produtoData.data.tipoProduto?.id || 0,
+    });
+  }
+}, [produtoData, tipoProduto, reset]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -63,24 +64,33 @@ export default function ProdutoForm() {
   }
 
   function salvarProduto() {
-    setLoader(true);
-    const body = getValues();
-    const url = id ? `/produto/${id}` : "/produto";
-    const method = id ? api.put : api.post;
+  setLoader(true);
+  setApiError(null); // limpa erro anterior
+  const body = getValues();
+  const url = id ? `/produto/${id}` : "/produto";
+  const method = id ? api.put : api.post;
 
-    method(url, body)
-      .then(() => {
-        mutate("/produto");
-        goBack();
-      })
-      .finally(() => setLoader(false));
-  }
+  method(url, body)
+    .then(() => {
+      mutate("/produto");
+      goBack();
+    })
+    .catch((e) => {
+      if (e.response?.data?.detail) {
+        setApiError(e.response.data.detail); // <-- mostra mensagem vinda do back
+      } else {
+        setApiError("Erro ao salvar produto");
+      }
+    })
+    .finally(() => setLoader(false));
+}
+
 
   return (
     <>
-      <div className="w-screen h-screen bg-black/50 absolute z-40" onClick={goBack} />
-      <div className={`${visibility ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"} z-50 flex w-full h-full justify-end transition-all duration-200 absolute inset-0 pointer-events-none`}>
-        <div className="bg-pink-100 z-50 overflow-y-auto scrollbar-thin scrollbar-track-neutral-200 scrollbar-thumb-neutral-300 min-w-80 max-w-sm w-full rounded-l-xl pointer-events-auto">
+      <div className="fixed inset-0 w-screen h-screen bg-black/50 z-40" onClick={goBack} />
+    <div className={`${visibility ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"} fixed inset-0 z-50 flex justify-end transition-all duration-200 pointer-events-none`}>
+      <div className="bg-pink-100 z-50 overflow-y-auto scrollbar-thin scrollbar-track-neutral-200 scrollbar-thumb-neutral-300 min-w-80 max-w-sm w-full rounded-l-xl pointer-events-auto">
           <div className="p-4">
             <div className="flex items-center gap-2">
               <button disabled={loader} onClick={goBack} className="hover:bg-neutral-200 rounded-lg p-1">
@@ -91,13 +101,16 @@ export default function ProdutoForm() {
           </div>
 
           <form onSubmit={handleSubmit(salvarProduto)} className="px-5 space-y-3">
-            <label className="flex flex-col">
-              <span>Status:</span>
-              <select {...register("ativo", { required: true })} className="input w-full">
-                <option value="true">Ativo</option>
-                <option value="false">Inativo</option>
-              </select>
-            </label>
+          <label className="flex flex-col">
+            <span>Status:</span>
+            <select
+              {...register("ativo", { required: true })}
+              className="input w-full"
+            >
+              <option value="true">Ativo</option>
+              <option value="false">Inativo</option>
+            </select>
+          </label>
 
             <label className="flex flex-col">
               <span>Nome:</span>
@@ -122,14 +135,14 @@ export default function ProdutoForm() {
             <label className="flex flex-col">
               <span>Tipo do Produto:</span>
               <select
-                {...register("tipoProdutoId", { required: true })}
-                value={watch("tipoProdutoId") || ""}
-                onChange={(e) => setValue("tipoProdutoId", Number(e.target.value))}
-                disabled={loader || isLoadingTipoProduto}
+                {...register("tipoProdutoId", { 
+                  required: "Selecione um tipo de produto"
+                })}
                 className="input w-full"
+                disabled={loader || isLoadingTipoProduto}
               >
                 <option value="">Selecione um tipo</option>
-                {tipoProduto?.data.map((tipo) => (
+                {tipoProduto?.data?.map((tipo) => (
                   <option key={tipo.id} value={tipo.id}>
                     {tipo.tipo} - R$ {tipo.valor?.toFixed(2)}
                   </option>

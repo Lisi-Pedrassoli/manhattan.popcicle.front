@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig, AxiosHeaders } from "axios";
+import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 
 const api = axios.create({
   baseURL: "http://localhost:8080",
@@ -6,28 +6,27 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// Interceptor de requisição: adiciona o token ao header Authorization
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem("token");
-  if (token) {
-    config.headers = new AxiosHeaders({
-      ...config.headers,
-      Authorization: `Bearer ${token}`
-    });
+  if (token && config.headers) {
+    config.headers["Authorization"] = `Bearer ${token}`;
   }
   return config;
 });
 
+// Interceptor de resposta: trata erros de autenticação
 api.interceptors.response.use(
-  (response: AxiosResponse) => { 
-    console.log("xesque");
-    return response 
+  (response: AxiosResponse) => {
+    return response;
   },
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = `/login`;
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
 );
+
 export default api;

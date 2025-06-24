@@ -12,6 +12,7 @@ import { Status } from "../../components/common/status";
 import { conversorUnidadeMedida } from "../../components/materia-prima/unidade";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useNavigate } from "react-router-dom";
 
 export default function MateriaPrima() {
   const itemsPerPage = 10;
@@ -25,6 +26,7 @@ export default function MateriaPrima() {
   const [notFoundModal, setNotFoundModal] = useState(false);
   const [start, setStart] = useState<number>(0);
   const [end, setEnd] = useState<number>(0);
+  const navigate = useNavigate();
 
   const { data: materiasPrimas, isLoading } = useSWR<AxiosResponse<MateriaPrimaType[]>>(`/materia-prima?page=${currentPage}&items=${itemsPerPage}`, api.get);
   
@@ -128,7 +130,8 @@ export default function MateriaPrima() {
                   {materiasPrimas?.data.map((materiaPrima: MateriaPrimaType) => (
                     <TableRow key={materiaPrima.id} className="bg-pink-100 border-transparent odd:bg-pink-50 group overflow-hidden relative ring-2 ring-inset rounded-lg ring-transparent hover:ring-pink-500 transition-none">
                       <TableCell className="group-hover:text-pink-500 group-hover:underline">
-                        <Link className="group-hover:cursor-pointer" to={`/materias-primas/form/${materiaPrima.id}`}>{materiaPrima.nome}</Link>
+                        {/* <Link className="group-hover:cursor-pointer" to={`/materias-primas/form/${materiaPrima.id}`}>{materiaPrima.nome}</Link> */}
+                        {materiaPrima.nome}
                       </TableCell>
                       <TableCell>{materiaPrima.quantidadeEstoque}</TableCell>
                       <TableCell>{conversorUnidadeMedida(materiaPrima.unidadeMedida)}</TableCell>
@@ -136,16 +139,12 @@ export default function MateriaPrima() {
                         <Status status={materiaPrima.ativo} />
                       </TableCell>
                       <TableCell>
-                      <button
-                            type="button"
-                            disabled={loader}
-                            onClick={() =>
-                              setDeleteConfirmationId(materiaPrima.id!)
-                            }
-                            className="bg-neutral-100 text-neutral-600 hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
-                          >
-                            <Pencil />
-                          </button>
+                      <div
+                         onClick={() => navigate(`/materias-primas/form/${materiaPrima.id}`)}
+                          className="bg-neutral-100 text-neutral-600 w-max hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
+                        >
+                          <Pencil />
+                      </div>
                       </TableCell>
                     </TableRow>
                   ))}

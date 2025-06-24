@@ -10,6 +10,7 @@ import { Status } from "../../components/common/status";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/table";
 import api from "../../utils/api";
 import { ProducaoReceitaType, ProducaoType } from "../../utils/types";
+import { useNavigate } from "react-router-dom";
 
 export default function Producoes() {
   const itemsPerPage = 10;
@@ -25,6 +26,7 @@ export default function Producoes() {
   const [notFoundModal, setNotFoundModal] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const navigate = useNavigate();
 
   const { data: producoes, isLoading } = useSWR<AxiosResponse<ProducaoType[]>>(`/producao?page=${currentPage}&items=${itemsPerPage}`, api.get);
 
@@ -182,7 +184,8 @@ export default function Producoes() {
                   {producoes?.data.map((producao: ProducaoType) => (
                     <TableRow key={producao.id} className="bg-pink-100 border-transparent odd:bg-pink-50 group overflow-hidden relative ring-2 ring-inset rounded-lg ring-transparent hover:ring-pink-500 transition-none">
                       <TableCell className="group-hover:text-pink-500 group-hover:underline">
-                        <Link className="group-hover:cursor-pointer" to={`/producoes/form/${producao.id}`}>{producao.dataAtual}</Link>
+                        {/* <Link className="group-hover:cursor-pointer" to={`/producoes/form/${producao.id}`}>{producao.dataAtual}</Link> */}
+                        {producao.dataAtual}
                       </TableCell>
 
                       <TableCell>{producao.vencimento}</TableCell>
@@ -208,16 +211,12 @@ export default function Producoes() {
                       </TableCell>
 
                       <TableCell>
-                      <button
-                            type="button"
-                            disabled={loader}
-                            onClick={() =>
-                              setDeleteConfirmationId(producao.id!)
-                            }
-                            className="bg-neutral-100 text-neutral-600 hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
-                          >
-                            <Pencil />
-                          </button>
+                       <div
+                         onClick={() => navigate(`/producoes/form/${producao.id}`)}
+                          className="bg-neutral-100 text-neutral-600 w-max hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
+                        >
+                          <Pencil />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

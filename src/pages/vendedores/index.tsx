@@ -2,7 +2,7 @@ import { AxiosResponse } from "axios";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-import { CheckCircle, File, Loader2, Plus, Trash2, X } from "lucide-react";
+import { Plus, Pencil, X, File, CheckCircle, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import useSWR, { mutate } from "swr";
@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import api from "../../utils/api";
 import { VendedorType } from "../../utils/types";
 import { formatPhone, toBrl } from "../../utils/utils";
+import { useNavigate } from "react-router-dom";
 
 export default function Vendedores() {
   const itemsPerPage = 10;
@@ -22,7 +23,7 @@ export default function Vendedores() {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-
+  const navigate = useNavigate();
   const [modalReport, setModalReport] = useState(false);
   const [notFoundModal, setNotFoundModal] = useState(false);
 
@@ -71,9 +72,9 @@ export default function Vendedores() {
       autoTable(doc, {
         startY: 35,
         head: [["Nome", "Comissão", "Telefone", "Ativo"]],
-        body: response.data.map((vendedor: VendedorType) => [
+       body: response.data.map((vendedor: VendedorType) => [
           vendedor.nome,
-          toBrl(vendedor.comissao),
+          `${vendedor.comissao}%`, 
           formatPhone(vendedor.telefone),
           vendedor.ativo ? "Sim" : "Não"
         ]),
@@ -136,7 +137,8 @@ export default function Vendedores() {
                   {vendedores?.data.map((vendedor: VendedorType) => (
                     <TableRow key={vendedor.id} className="bg-pink-100 border-transparent odd:bg-pink-50 group overflow-hidden relative ring-2 ring-inset rounded-lg ring-transparent hover:ring-pink-500 transition-none">
                       <TableCell className="group-hover:text-pink-500 group-hover:underline">
-                        <Link className="group-hover:cursor-pointer" to={`/vendedores/form/${vendedor.id}`}>{vendedor.nome}</Link>
+                        {/* <Link className="group-hover:cursor-pointer" to={`/vendedores/form/${vendedor.id}`}>{vendedor.nome}</Link> */}
+                        {vendedor.nome}
                       </TableCell>
 
                       <TableCell>{vendedor.comissao}%</TableCell>
@@ -158,16 +160,12 @@ export default function Vendedores() {
                             <CheckCircle size={16} />
                           </button>
                         ) : (
-                          <button
-                            type="button"
-                            disabled={loader}
-                            onClick={() =>
-                              setDeleteConfirmationId(vendedor.id!)
-                            }
-                            className="bg-neutral-100 text-neutral-600 hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          <div
+                         onClick={() => navigate(`/vendedores/form/${vendedor.id}`)}
+                          className="bg-neutral-100 text-neutral-600 w-max hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
+                        >
+                          <Pencil />
+                      </div>
                         )}
                       </TableCell>
                     </TableRow>

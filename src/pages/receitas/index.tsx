@@ -9,8 +9,10 @@ import { Status } from "../../components/common/status";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/table";
 import api from "../../utils/api";
 import { ReceitaType } from "../../utils/types";
+import { useNavigate } from "react-router-dom";
 
 export default function Receitas() {
+  const navigate = useNavigate();
   const itemsPerPage = 10;
   const [loader] = useState(false);
   const location = useLocation();
@@ -58,7 +60,8 @@ export default function Receitas() {
                   {receitas?.data.map((receita: ReceitaType) => (
                     <TableRow key={receita.id} className="bg-pink-100 border-transparent odd:bg-pink-50 group overflow-hidden relative ring-2 ring-inset rounded-lg ring-transparent hover:ring-pink-500 transition-none">
                       <TableCell className="group-hover:text-pink-500 group-hover:underline">
-                        <Link className="group-hover:cursor-pointer" to={`/receitas/form/${receita.id}`}>{receita.produto.nome}</Link>
+                        {/* <Link className="group-hover:cursor-pointer" to={`/receitas/form/${receita.id}`}>{receita.produto.nome}</Link> */}
+                        {receita.produto.nome}
                       </TableCell>
 
                       <TableCell>
@@ -82,16 +85,12 @@ export default function Receitas() {
                       </TableCell>
 
                       <TableCell>
-                      <button
-                            type="button"
-                            disabled={loader}
-                            onClick={() =>
-                              setDeleteConfirmationId(receita.id!)
-                            }
-                            className="bg-neutral-100 text-neutral-600 hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
-                          >
-                            <Pencil/>
-                          </button>
+                      <div
+                         onClick={() => navigate(`/receitas/form/${receita.id}`)}
+                          className="bg-neutral-100 text-neutral-600 w-max hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
+                        >
+                          <Pencil />
+                      </div>
                       </TableCell>
                     </TableRow>
                   ))}

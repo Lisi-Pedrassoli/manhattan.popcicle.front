@@ -10,8 +10,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Status } from "../../components/common/status";
 import { useEffect, useState } from "react";
 import { toBrl } from "../../utils/utils";
+import { useNavigate } from "react-router-dom";
 
 export default function TiposProdutos() {
+  const navigate = useNavigate();
   const itemsPerPage = 10;
   const [loade, setLoader] = useState(false)
   const location = useLocation();//isso também
@@ -71,26 +73,25 @@ export default function TiposProdutos() {
                       className="bg-pink-100 border-transparent odd:bg-pink-50 group overflow-hidden relative ring-2 ring-inset rounded-lg ring-transparent hover:ring-pink-500 transition-none"
                     >
                       <TableCell className="group-hover:text-pink-500 group-hover:underline">
-                        <Link
+                        {/* <Link aqui caso eu queria por um link no nome para direcionar para o formulatio de edição
                           className="group-hover:cursor-pointer"
-                          to={`/tipos-produtos/form/${_tipoProduto.id}`}
+                          to={`/tipos-produtos/form/${_tipoProduto.id}`} 
                         >
-                          {_tipoProduto.tipo}
-                        </Link>
+                          {_tipoProduto.tipo} 
+                        </Link> */}
+                        {_tipoProduto.tipo}
                       </TableCell>
                       <TableCell>{toBrl(_tipoProduto.valor)}</TableCell>
                       <TableCell>
                         <Status status={_tipoProduto.ativo!} />
                       </TableCell>
-                      <TableCell>
-                      <button
-                            type="button"
-                            disabled={loade}
-                            onClick={() => desativarTipoProduto(_tipoProduto.id!)}
-                            className="bg-neutral-100 text-neutral-600 hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
-                          >
-                            <Pencil />
-                          </button>
+                      <TableCell>{/*  aqui para definir o botao de lapis vai abrir o formulario de edição */}
+                        <div
+                          onClick={() => navigate(`/tipos-produtos/form/${_tipoProduto.id}`)}
+                          className="bg-neutral-100 text-neutral-600 w-max hover:bg-red-100 hover:text-red-600 rounded-lg p-1 opacity-40 hover:opacity-100"
+                        >
+                          <Pencil />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

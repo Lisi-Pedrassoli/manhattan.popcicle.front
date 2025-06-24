@@ -32,7 +32,6 @@ export default function VendaForm() {
   const { data: vendedores, isLoading: isLoadingVendedores } = useSWR<AxiosResponse<VendedorType[]>>(`/vendedor`, api.get);
   const { data: produtos, isLoading: isLoadingProdutos } = useSWR<AxiosResponse<ProdutoType[]>>(`/produto`, api.get);
 
-  // Ajusta valores do formulário quando id ou venda mudarem
   useEffect(() => {
     if (id && venda?.data) {
       setValue("id", id);
@@ -187,6 +186,31 @@ export default function VendaForm() {
     }
   }
 
+  function atualizarVenda() {
+    setLoader(true);
+
+    const data = {
+      vendedorId: getValues("vendedorId"),
+      produtoVenda: selectedProdutos.map((produto) => ({
+        productId: produto.produtoId,
+        quantidadeSaida: produto.quantidade,
+      })),
+    };
+
+    api
+      .put(`/venda/${id}`, data)
+      .then(() => {
+        mutate("/venda");
+        goBack();
+      })
+      .catch(() => {
+        setApiError("Erro ao salvar alterações da venda.");
+      })
+      .finally(() => {
+        setLoader(false);
+      });
+  }
+
   function cancelaVenda() {
     setLoader(true);
 
@@ -200,6 +224,8 @@ export default function VendaForm() {
         setLoader(false);
       });
   }
+
+  const status = getValues("status");
 
   return (
     <>
@@ -229,10 +255,7 @@ export default function VendaForm() {
             </div>
           </div>
 
-          <form
-            onSubmit={handleSubmit(id ? atualizaStatusVenda : criarVenda)}
-            className="px-5 space-y-3"
-          >
+          <form onSubmit={handleSubmit(id ? atualizaStatusVenda : criarVenda)} className="px-5 space-y-3">
             {id ? (
               <>
                 <label className="flex flex-col">
@@ -246,7 +269,7 @@ export default function VendaForm() {
                 </label>
 
                 <div className="flex gap-2">
-                  {getValues("status") === "OPENED" && (
+                  {status === "OPENED" && (
                     <>
                       <button
                         onClick={fechaVenda}
@@ -272,12 +295,7 @@ export default function VendaForm() {
             ) : (
               <label className="flex flex-col">
                 <span>Status:</span>
-                <input
-                  type="text"
-                  value="Aberto"
-                  disabled
-                  className="w-full text-neutral-500"
-                />
+                <input type="text" value="Aberto" disabled className="w-full text-neutral-500" />
               </label>
             )}
 
@@ -285,10 +303,7 @@ export default function VendaForm() {
               <span>Vendedor:</span>
               {!id ? (
                 !isLoadingVendedores ? (
-                  <select
-                    {...register("vendedorId", { required: false })}
-                    className="input w-full"
-                  >
+                  <select {...register("vendedorId", { required: false })} className="input w-full">
                     <option value="">Selecione um vendedor</option>
                     {vendedores?.data.map((vendedor) => (
                       <option key={vendedor.id} value={vendedor.id}>
@@ -302,36 +317,22 @@ export default function VendaForm() {
                   </span>
                 )
               ) : (
-                <input
-                  type="text"
-                  value={venda?.data.vendedor.nome}
-                  disabled
-                  className="w-full text-neutral-500"
-                />
+                <input type="text" value={venda?.data.vendedor.nome} disabled className="w-full text-neutral-500" />
               )}
             </label>
 
             <label className="flex flex-col">
               <span>Produtos:</span>
-
               {!id && produtos?.data.length ? (
                 <select
                   onChange={(e) =>
-                    adicionarProduto(
-                      e.target.value,
-                      e.target.options[e.target.selectedIndex].text
-                    )
+                    adicionarProduto(e.target.value, e.target.options[e.target.selectedIndex].text)
                   }
                   className="input w-full"
                 >
                   <option value="">Selecione um produto</option>
                   {produtos?.data
-                    .filter(
-                      (prod) =>
-                        !selectedProdutos.some(
-                          (selected) => selected.produtoId === prod.id
-                        )
-                    )
+                    .filter((prod) => !selectedProdutos.some((selected) => selected.produtoId === prod.id))
                     .map((prod) => (
                       <option key={prod.id} value={prod.id}>
                         {prod.nome}
@@ -356,34 +357,29 @@ export default function VendaForm() {
                   <div className="flex-1 flex items-center gap-2 justify-between">
                     <span className="truncate max-w-56">{produto.nome}</span>
 
-                    {!id ? (
+                    <input
+                      type="number"
+                      value={produto.quantidade}
+                      onChange={(e) =>
+                        atualizarQuantidade(produto.produtoId, parseInt(e.target.value))
+                      }
+                      className="w-16 border border-pink-300 rounded-lg px-1 text-center"
+                      disabled={!( !id || status === "OPENED" )}
+                      min={1}
+                      max={retornaEstoque(produto.produtoId)}
+                    />
+
+                    {id && (
                       <input
                         type="number"
-                        min={1}
-                        max={retornaEstoque(produto.produtoId)}
-                        value={produto.quantidade}
+                        value={produto.quantidadeVolta || 0}
                         onChange={(e) =>
-                          atualizarQuantidade(produto.produtoId, parseInt(e.target.value))
+                          atualizarSaida(produto.produtoId, parseInt(e.target.value))
                         }
                         className="w-16 border border-pink-300 rounded-lg px-1 text-center"
+                        disabled={status !== "OPENED"}
+                        min={0}
                       />
-                    ) : (
-                      <>
-                        <input
-                          type="number"
-                          defaultValue={produto.quantidade}
-                          disabled
-                          className="w-16 border border-pink-300 rounded-lg px-1 text-center"
-                        />
-                        <input
-                          type="number"
-                          defaultValue={produto.quantidadeVolta}
-                          onChange={(e) =>
-                            atualizarSaida(produto.produtoId, parseInt(e.target.value))
-                          }
-                          className="w-16 border border-pink-300 rounded-lg px-1 text-center"
-                        />
-                      </>
                     )}
                   </div>
 
@@ -399,6 +395,18 @@ export default function VendaForm() {
                 </div>
               ))}
             </div>
+
+            {/* Botão Salvar Alterações abaixo dos produtos */}
+            {/* {id && status === "OPENED" && (
+              // <button
+              //   onClick={atualizarVenda}
+              //   type="button"
+              //   className="mt-4 text-sm w-full whitespace-nowrap bg-pink-500 px-4 py-2 text-white rounded-lg cursor-pointer"
+              //   disabled={isLoading || loader}
+              // >
+              //   {loader ? <Loader2 className="animate-spin" /> : "Salvar Alterações"}
+              // </button>
+            )} */}
 
             {apiError && <p className="text-red-600 text-sm mt-2">{apiError}</p>}
 

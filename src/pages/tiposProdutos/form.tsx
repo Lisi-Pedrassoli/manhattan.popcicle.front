@@ -12,6 +12,7 @@ export default function TipoProdutoForm() {
   const [visibility, setVisibility] = useState(false);
   const [loader, setLoader] = useState(false);
   const { id } = useParams();
+
   const {
     handleSubmit,
     register,
@@ -19,16 +20,21 @@ export default function TipoProdutoForm() {
     setValue,
     formState: { errors },
   } = useForm<TipoProdutoType>();
+
   const { data, isLoading } = useSWR<AxiosResponse<TipoProdutoType>>(
-    id && `/tipo-produto/${id}`,
+    id ? `/tipo-produto/${id}` : null,
     api.get
   );
-  if (id) {
-    setValue("id", id);
-    setValue("ativo", data?.data.ativo);
-    setValue("tipo", data?.data.tipo!);
-    setValue("valor", data?.data.valor!);
-  }
+
+  // Corrigido: só preenche os campos quando os dados estiverem carregados
+  useEffect(() => {
+    if (id && data?.data) {
+      setValue("id", id);
+      setValue("ativo", data.data.ativo);
+      setValue("tipo", data.data.tipo);
+      setValue("valor", data.data.valor);
+    }
+  }, [id, data, setValue]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -51,12 +57,9 @@ export default function TipoProdutoForm() {
       .post("/tipo-produto", getValues())
       .then(() => {
         mutate("/tipo-produto");
-        setLoader(false);
-        goBack()
+        goBack();
       })
-      .finally(() => {
-        setLoader(false);
-      });
+      .finally(() => setLoader(false));
   }
 
   function atualizarTipoProduto() {
@@ -65,12 +68,9 @@ export default function TipoProdutoForm() {
       .put(`/tipo-produto/${id}`, getValues())
       .then(() => {
         mutate("/tipo-produto");
-        setLoader(false);
-        goBack()
+        goBack();
       })
-      .finally(() => {
-        setLoader(false);
-      });
+      .finally(() => setLoader(false));
   }
 
   return (
@@ -101,7 +101,7 @@ export default function TipoProdutoForm() {
           </div>
           <form
             onSubmit={handleSubmit(
-              id ? () => atualizarTipoProduto() : () => criarTipoProduto()
+              id ? atualizarTipoProduto : criarTipoProduto
             )}
             className="px-5 space-y-3"
           >
@@ -124,31 +124,39 @@ export default function TipoProdutoForm() {
                 placeholder="Especial, leite, frutas..."
                 className="input"
               />
-              {errors.tipo ? (
+              {errors.tipo && (
                 <p className="text-xs text-red-500 mt-1">
                   O campo não deve ser nulo
                 </p>
-              ) : null}
+              )}
             </label>
             <label className="flex flex-col">
               <span>Valor: </span>
               <input
-                disabled={loader}
-                type="text"
-                {...register("valor", {
-                  required: true,
-                  validate: (value: number | null) =>
-                    (value != null && Number(value) > 0) ||
-                    "O valor deve ser positivo",
-                })}
-                placeholder="R$3,50"
-                className="input"
-              />
-              {errors.valor ? (
+                  disabled={loader}
+                  type="number"
+                  step="0.01"
+                  {...register("valor", {
+                    required: true,
+                    validate: (value) => {
+                      if (value == null || Number(value) <= 0) {
+                        return "O valor deve ser positivo";
+                      }
+                      return true;
+                    },
+                  })}
+                  placeholder="R$3,50"
+                  className="input"
+                />
+                {errors.valor && (
+                  <p className="text-xs text-red-500 mt-1">{errors.valor.message}</p>
+                )}
+
+              {errors.valor && (
                 <p className="text-xs text-red-500 mt-1">
-                  O valor deve ser positivo
+                  {errors.valor.message}
                 </p>
-              ) : null}
+              )}
             </label>
             <button
               className="bg-pink-500 px-4 py-2 text-white rounded-lg float-right"

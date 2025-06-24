@@ -9,6 +9,7 @@ import api from "../../utils/api";
 import { ProdutoVendaType, VendaType } from "../../utils/types";
 import { toBrl } from "../../utils/utils";
 import jsPDF from "jspdf";
+import { useNavigate } from "react-router-dom";
 
 export default function Vendas() {
   const itemsPerPage = 10;
@@ -23,6 +24,7 @@ export default function Vendas() {
   const [notFoundModal, setNotFoundModal] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const navigate = useNavigate();
 
   const { data: vendas, isLoading } = useSWR<AxiosResponse<VendaType[]>>(`/venda?page=${currentPage}&items=${itemsPerPage}`, api.get);
 

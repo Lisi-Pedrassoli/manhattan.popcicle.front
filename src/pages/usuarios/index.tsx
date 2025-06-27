@@ -28,7 +28,7 @@ export default function Usuarios() {
 
   return (
     <>
-      <div className="relative overflow-x-auto sm:rounded-lg flex flex-col gap-7">
+      <div className="pt-12 sm:pt-0 relative overflow-x-auto sm:rounded-lg flex flex-col gap-7">
         <Link to="/usuarios/form" className="bg-pink-400 text-white font-bold px-4 py-2 rounded-lg cursor-pointer w-max flex gap-2 items-center">
           <Plus className="text-white size={20}" />
           <span>Novo Usuário</span>

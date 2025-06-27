@@ -61,7 +61,7 @@ export default function VendedorForm() {
 
     const data = {
       telefone: getValues("telefone"),
-      comissao: parseFloat(getValues("comissao").toString()) / 100,
+      comissao: parseFloat(getValues("comissao").toString()),
       cpf: getValues("cpf"),
       nome: getValues("nome"),
     };
@@ -83,7 +83,7 @@ export default function VendedorForm() {
     const valores = getValues();
     const dadosConvertidos = {
       ...valores,
-      comissao: parseFloat(valores.comissao.toString()) / 100,
+      comissao: parseFloat(valores.comissao.toString()),
     };
     api
     .put(`/vendedor/${id}`, dadosConvertidos)

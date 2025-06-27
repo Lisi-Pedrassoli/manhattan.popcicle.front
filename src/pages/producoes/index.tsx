@@ -153,7 +153,7 @@ export default function Producoes() {
 
   return (
     <>
-      <div className="relative overflow-x-auto sm:rounded-lg flex flex-col gap-7">
+      <div className="pt-12 sm:pt-0 relative overflow-x-auto sm:rounded-lg flex flex-col gap-7">
         <div className="flex justify-between items-center">
           <Link to="/producoes/form" className="bg-pink-400 text-white font-bold px-4 py-2 rounded-lg cursor-pointer w-max flex gap-2 items-center">
             <Plus className="text-white size={20}" />
@@ -181,7 +181,17 @@ export default function Producoes() {
                 </TableHeader>
 
                 <TableBody>
-                  {producoes?.data.map((producao: ProducaoType) => (
+                 {producoes?.data
+                    .slice() // faz uma cópia para não alterar a original
+                    .sort((a, b) => {
+                      const [diaA, mesA, anoA] = a.vencimento.split("/").map(Number);
+                      const [diaB, mesB, anoB] = b.vencimento.split("/").map(Number);
+                      const dataA = new Date(anoA, mesA - 1, diaA);
+                      const dataB = new Date(anoB, mesB - 1, diaB);
+                      return dataA.getTime() - dataB.getTime(); // ordena da mais próxima para a mais distante
+                    })
+                    .map((producao: ProducaoType) => (
+
                     <TableRow key={producao.id} className="bg-pink-100 border-transparent odd:bg-pink-50 group overflow-hidden relative ring-2 ring-inset rounded-lg ring-transparent hover:ring-pink-500 transition-none">
                       <TableCell className="group-hover:text-pink-500 group-hover:underline">
                         {/* <Link className="group-hover:cursor-pointer" to={`/producoes/form/${producao.id}`}>{producao.dataAtual}</Link> */}
@@ -286,12 +296,12 @@ export default function Producoes() {
               <>
                 <div className="flex items-end gap-5 w-full">
                   <div className="w-full flex flex-col">
-                    <span className="text-neutral-500">Data Inicial</span>
+                    <span className="text-neutral-500">Data de criação</span>
                     <input type="date" onChange={(e) => setStartDate(e.target.value)} className="bg-pink-400 text-white font-bold px-4 py-2 rounded-lg cursor-pointer w-max items-center" />
                   </div>
 
                   <div className="w-full flex flex-col">
-                    <span className="text-neutral-500">Data Vencimento</span>
+                    <span className="text-neutral-500">Data de vencimento</span>
                     <input type="date" onChange={(e) => setEndDate(e.target.value)} className="bg-pink-400 text-white font-bold px-4 py-2 rounded-lg cursor-pointer w-max items-center" />
                   </div>
                 </div>

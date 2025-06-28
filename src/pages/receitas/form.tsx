@@ -15,29 +15,27 @@ export default function ReceitaForm() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedMateriasPrimas, setSelectedMateriasPrimas] = useState<MateriaPrimaType[]>([]);
   const [quantidade, setQuantidades] = useState<Record<string, number>>({});
-
   const { id } = useParams();
+
   const { handleSubmit, register, getValues, setValue, reset, watch, formState: { errors } } = useForm<any>({
     defaultValues: { produto_id: "" }
   });
-  const produtoId = watch("produto_id")
+
+  const produtoId = watch("produto_id");
+
   const { data: receitas, isLoading: isLoadingReceitas } = useSWR<AxiosResponse<ReceitaType>>(id && `/receita/${id}`, api.get);
   const { data: produtos, isLoading: isLoadingProdutos } = useSWR<AxiosResponse<ProdutoType[]>>("/produto/no-recipe", api.get);
   const { data: materiasPrimas } = useSWR<AxiosResponse<MateriaPrimaType[]>>("/materia-prima", api.get);
 
   useEffect(() => {
-    // Mostra o formulário com animação
-    const timer = setTimeout(() => {
-      setVisibility(true);
-    }, 1);
+    const timer = setTimeout(() => setVisibility(true), 1);
 
-    // Se estiver em modo de edição (tem ID e dados carregados)
     if (id && receitas?.data) {
-      // 1) Preenche o estado com as matérias-primas existentes na receita
+      setValue("ativo", receitas.data.ativo ? "true" : "false");
+
       const materiasPrimas = receitas.data.receitaMateriaPrima.map((item: any) => item.materiaPrima);
       setSelectedMateriasPrimas(materiasPrimas);
 
-      // 2) Cria o objeto de quantidades usando a propriedade correta (quantidadeMP)
       const quantidadesIniciais = receitas.data.receitaMateriaPrima.reduce(
         (acc: Record<string, number>, item: any) => {
           acc[item.materiaPrima.id] = item.quantidadeMP;
@@ -47,68 +45,41 @@ export default function ReceitaForm() {
       );
       setQuantidades(quantidadesIniciais);
 
-      // 3) Garante que o campo produto_id do form seja preenchido
-      reset({
-        produto_id: receitas.data.produto.id,
-      });
+      reset({ produto_id: receitas.data.produto.id });
     }
 
     return () => clearTimeout(timer);
-  }, [id, receitas, setValue]);
-
-
+  }, [id, receitas, setValue, reset]);
 
   function goBack() {
     if (loader) return;
     setLoader(true);
     setVisibility(false);
-    setTimeout(() => {
-      route(-1);
-    }, 200);
+    setTimeout(() => route(-1), 200);
   }
 
   function toggleMateriaPrima(materiaPrima: MateriaPrimaType) {
-    // Atualiza a lista de selecionadas
     setSelectedMateriasPrimas(prevSelected => {
       const exists = prevSelected.some(mp => mp.id === materiaPrima.id);
-
-      if (exists) {
-        // Deseleciona: remove da lista
-        return prevSelected.filter(mp => mp.id !== materiaPrima.id);
-      } else {
-        // Seleciona: adiciona somente se ainda não existir
-        return [...prevSelected, materiaPrima];
-      }
+      return exists ? prevSelected.filter(mp => mp.id !== materiaPrima.id) : [...prevSelected, materiaPrima];
     });
 
-    // Atualiza o objeto de quantidades
     setQuantidades(prevQuant => {
       const exists = prevQuant.hasOwnProperty(materiaPrima.id);
-
-      if (exists) {
-        // Remove a propriedade quando deseleciona
-        const { [materiaPrima.id]: _, ...rest } = prevQuant;
-        return rest;
-      } else {
-        // Adiciona com valor 0 quando seleciona
-        return { ...prevQuant, [materiaPrima.id]: 0 };
-      }
+      return exists
+        ? Object.fromEntries(Object.entries(prevQuant).filter(([key]) => key !== materiaPrima.id))
+        : { ...prevQuant, [materiaPrima.id]: 0 };
     });
   }
 
-
   function handleQuantidadeChange(materiaPrimaId: string, value: string) {
     const numericValue = parseFloat(value) || 0;
-    setQuantidades(prev => ({
-      ...prev,
-      [materiaPrimaId]: numericValue
-    }));
+    setQuantidades(prev => ({ ...prev, [materiaPrimaId]: numericValue }));
   }
 
   function criarReceita() {
     setLoader(true);
 
-    // Verifica se todas as matérias-primas selecionadas têm quantidade > 0
     const hasInvalidQuantity = selectedMateriasPrimas.some(mp =>
       !quantidade[mp.id] || quantidade[mp.id] <= 0
     );
@@ -121,14 +92,14 @@ export default function ReceitaForm() {
 
     const data = {
       produto_id: getValues("produto_id"),
+      ativo: String(getValues("ativo")) === "true",
       receitaMateriaPrimaList: selectedMateriasPrimas.map((mp) => ({
         materiaPrima_id: mp.id,
         quantidade: quantidade[mp.id]
       })),
     };
 
-    api
-      .post("/receita", data)
+    api.post("/receita", data)
       .then(() => {
         mutate("/receita");
         setLoader(false);
@@ -143,7 +114,6 @@ export default function ReceitaForm() {
   function atualizarReceita() {
     setLoader(true);
 
-    // Verifica se todas as matérias-primas selecionadas têm quantidade > 0
     const hasInvalidQuantity = selectedMateriasPrimas.some(mp =>
       !quantidade[mp.id] || quantidade[mp.id] <= 0
     );
@@ -156,14 +126,16 @@ export default function ReceitaForm() {
 
     const data = {
       produto_id: getValues("produto_id"),
+      ativo: String(getValues("ativo")) === "true",
       receitaMateriaPrimaList: selectedMateriasPrimas.map((mp) => ({
         materiaPrima_id: mp.id,
         quantidade: quantidade[mp.id]
       })),
     };
 
-    api
-      .put(`/receita/${id}`, data)
+    const status = data.ativo;
+
+    api.put(`/receita/${id}?status=${status}`, data)
       .then(() => {
         mutate("/receita");
         setLoader(false);
@@ -177,20 +149,28 @@ export default function ReceitaForm() {
 
   return (
     <>
-      {!modalOpen && <div className="w-screen h-screen bg-black/50 overflow-y-auto inset-0 absolute z-40" onClick={() => goBack()} />}
+      {!modalOpen && <div className="w-screen h-screen bg-black/50 overflow-y-auto inset-0 absolute z-40" onClick={goBack} />}
 
       <div className={`${visibility ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"} z-50 flex w-full h-full justify-end transition-all duration-200 absolute inset-0 pointer-events-none`}>
         <div className="bg-pink-100 z-50 overflow-y-auto scrollbar-thin scrollbar-track-neutral-200 scrollbar-thumb-neutral-300 min-w-80 max-w-sm w-full rounded-l-xl pointer-events-auto">
           <div className="p-4">
             <div className="flex items-center gap-2">
-              <button disabled={loader} onClick={() => goBack()} className="hover:bg-neutral-200 rounded-lg p-1">
+              <button disabled={loader} onClick={goBack} className="hover:bg-neutral-200 rounded-lg p-1">
                 <ArrowLeft size={20} />
               </button>
               <h2 className="font-bold text-xl mb-1">Receita</h2>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit(id ? () => atualizarReceita() : () => criarReceita())} className="px-5 space-y-3">
+          <form onSubmit={handleSubmit(id ? atualizarReceita : criarReceita)} className="px-5 space-y-3">
+            <label className="flex flex-col">
+              <span>Status:</span>
+              <select {...register("ativo", { required: true })} className="input w-full">
+                <option value="true">Ativo</option>
+                <option value="false">Inativo</option>
+              </select>
+            </label>
+
             <label className="flex flex-col">
               <span>Produto:</span>
               <select value={produtoId} disabled={loader || isLoadingProdutos} {...register("produto_id", { required: true })} className="input w-full">
@@ -211,16 +191,13 @@ export default function ReceitaForm() {
               <label className="flex flex-col">
                 {selectedMateriasPrimas.length > 0 && <span className="mb-2">Matérias-Primas:</span>}
                 <div className="flex flex-wrap gap-2">
-                  <div className="flex flex-wrap gap-2">
-                    {selectedMateriasPrimas.map(mp => (
-                      <span key={mp.id} className="bg-pink-200 text-pink-800 px-2 py-1 rounded-lg text-xs">
-                        {mp.nome} ({quantidade[mp.id]} - {conversorUnidadeMedida(mp.unidadeMedida)})
-                      </span>
-                    ))}
-                  </div>
-
+                  {selectedMateriasPrimas.map(mp => (
+                    <span key={mp.id} className="bg-pink-200 text-pink-800 px-2 py-1 rounded-lg text-xs">
+                      {mp.nome} ({quantidade[mp.id]} - {conversorUnidadeMedida(mp.unidadeMedida)})
+                    </span>
+                  ))}
                 </div>
-                {!selectedMateriasPrimas.length && <span className="text-sm text-neutral-700">Nenhuma matéria prima selecionada</span>}
+                {!selectedMateriasPrimas.length && <span className="text-sm text-neutral-700">Nenhuma matéria-prima selecionada</span>}
               </label>
 
               <button type="button" onClick={() => setModalOpen(true)} className="mt-2 bg-pink-500 text-white px-4 py-2 rounded-lg w-full cursor-pointer text-sm">
@@ -250,10 +227,11 @@ export default function ReceitaForm() {
                 <div key={mp.id} className="flex items-center justify-between gap-2">
                   <button
                     onClick={() => toggleMateriaPrima(mp)}
-                    className={`px-2 py-1 rounded-lg text-xs cursor-pointer flex-1 text-left ${selectedMateriasPrimas.some((m) => m.id === mp.id)
-                      ? "bg-pink-500 text-white"
-                      : "bg-pink-200 text-pink-800"
-                      }`}
+                    className={`px-2 py-1 rounded-lg text-xs cursor-pointer flex-1 text-left ${
+                      selectedMateriasPrimas.some((m) => m.id === mp.id)
+                        ? "bg-pink-500 text-white"
+                        : "bg-pink-200 text-pink-800"
+                    }`}
                   >
                     {mp.nome} ({conversorUnidadeMedida(mp.unidadeMedida)})
                   </button>
@@ -269,16 +247,12 @@ export default function ReceitaForm() {
                       placeholder="Qtd"
                     />
                   )}
-
                 </div>
               ))}
             </div>
 
             <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => setModalOpen(false)}
-                className="bg-pink-500 text-white px-4 py-2 rounded-lg"
-              >
+              <button onClick={() => setModalOpen(false)} className="bg-pink-500 text-white px-4 py-2 rounded-lg">
                 Confirmar
               </button>
             </div>

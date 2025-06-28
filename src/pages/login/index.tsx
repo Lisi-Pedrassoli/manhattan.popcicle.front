@@ -13,7 +13,7 @@ export default function Login() {
   async function login(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); // evita recarregar
 
-    setLoader(true);
+    setLoader(true);  
     setError("");
 
     try {
@@ -33,14 +33,15 @@ export default function Login() {
         window.location.href = "/usuarios";
       }
     } catch (e: any) {
-      if (e.response?.data?.detail) {
-        setError(e.response.data.detail);
-      } else {
-        setError("Usuário ou senha incorretos");
-      }
-    } finally {
-      setLoader(false);
-    }
+  if (e.response?.data?.detail) {
+    setError(e.response.data.detail);
+  } else {
+    setError("Usuário ou senha incorretos");
+  }
+} finally {
+    setLoader(false); // PARA O LOADER AQUI, SEMPRE
+  }
+
   }
 
   return (
@@ -59,10 +60,7 @@ export default function Login() {
             placeholder="Email"
             className="bg-pink-300 rounded-lg px-4 py-2 w-full"
             value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (error) setError("");
-            }}
+            onChange={(e) => setEmail(e.target.value)}
           />
 
           <label className="relative">
@@ -71,10 +69,7 @@ export default function Login() {
               placeholder="Senha"
               className="bg-pink-300 rounded-lg px-4 py-2 w-full"
               value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (error) setError("");
-              }}
+              onChange={(e) => setPassword(e.target.value)}
             />
             <button
               type="button"

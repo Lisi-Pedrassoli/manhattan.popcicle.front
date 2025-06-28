@@ -57,7 +57,7 @@ export default function Usuarios() {
                       <TableCell>{usuario.email}</TableCell>
                       <TableCell>{usuario.cargo == "ADMIN" ? "Administrador" : ""}</TableCell>
                       <TableCell>
-                        <Status status={usuario.ativo} />
+                        <Status status={String(usuario.ativo) === "true"} />
                       </TableCell>
                       <TableCell>
                       <div

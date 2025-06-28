@@ -99,7 +99,7 @@ export default function UsuarioForm() {
       nome: getValues("nome"),
       email: getValues("email"),
       senha: getValues("senha"),
-      ativo: Boolean(getValues("ativo")),
+      ativo: getValues("ativo") === "true",
     };
 
     api

@@ -1,5 +1,5 @@
 export type UsuarioType = {  
-  ativo: boolean;
+  ativo: boolean|string;
   cargo: string;
   email: string;
   senha: string;

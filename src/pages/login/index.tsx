@@ -38,11 +38,11 @@ export default function Login() {
   } else {
     setError("Usuário ou senha incorretos");
   }
-} finally {
-    setLoader(false); // PARA O LOADER AQUI, SEMPRE
+  } finally {
+    setLoader(false); 
   }
 
-  }
+}
 
   return (
     <div className="w-full h-screen flex flex-col items-center justify-center gap-10 bg-pink-100 p-5">

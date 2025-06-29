@@ -180,9 +180,12 @@ export default function ReceitaForm() {
                     {receitas.data.produto.nome}
                   </option>
                 )}
-                {produtos?.data.map((produto) => (
-                  <option key={produto.id} value={produto.id}>{produto.nome}</option>
+                {produtos?.data
+                  .filter((produto) => produto.ativo) // 👈 apenas produtos ativos
+                  .map((produto) => (
+                    <option key={produto.id} value={produto.id}>{produto.nome}</option>
                 ))}
+
               </select>
               {errors.produto && <p className="text-xs text-red-500 mt-1">Selecione um produto</p>}
             </label>
@@ -223,7 +226,9 @@ export default function ReceitaForm() {
             </div>
 
             <div className="space-y-4 mt-4">
-              {materiasPrimas?.data.map((mp) => (
+              {materiasPrimas?.data
+                .filter((mp) => mp.ativo) // <-- aqui o filtro dos ativos
+                .map((mp) => (
                 <div key={mp.id} className="flex items-center justify-between gap-2">
                   <button
                     onClick={() => toggleMateriaPrima(mp)}

@@ -142,10 +142,12 @@ export default function ProdutoForm() {
                 disabled={loader || isLoadingTipoProduto}
               >
                 <option value="">Selecione um tipo</option>
-                {tipoProduto?.data?.map((tipo) => (
-                  <option key={tipo.id} value={tipo.id}>
-                    {tipo.tipo} - R$ {tipo.valor?.toFixed(2)}
-                  </option>
+                {tipoProduto?.data
+                  ?.filter((tipo) => tipo.ativo) // <-- FILTRA apenas os tipos ativos
+                  .map((tipo) => (
+                    <option key={tipo.id} value={tipo.id}>
+                      {tipo.tipo} - R$ {tipo.valor?.toFixed(2)}
+                    </option>
                 ))}
               </select>
               {errors.tipoProdutoId && <p className="text-xs text-red-500 mt-1">Selecione um tipo válido</p>}

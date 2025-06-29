@@ -80,6 +80,16 @@ export default function ProducaoForm() {
     setLoader(true);
     setApiError(null);
 
+    const receitasInvalidas = selectedReceitas.filter((r) => {
+    const receitaCompleta = receitas?.data.find((rec) => rec.id === r.receitaId);
+    return receitaCompleta?.produto?.tipoProduto?.ativo === false;
+  });
+
+  if (receitasInvalidas.length > 0) {
+    setLoader(false);
+    return;
+  }
+
     const dataAtual = new Date().toLocaleDateString("pt-BR");
     const vi = new Date(getValues("vencimento"));
     vi.setDate(vi.getDate() + 1);
@@ -156,11 +166,13 @@ export default function ProducaoForm() {
               {receitas?.data.length ? (
                 <select onChange={e => adicionarReceita(e.target.value, e.target.options[e.target.selectedIndex].text)} className="input w-full">
                   <option value="">Selecione uma receita</option>
-                  {receitas.data
-                    .filter(r => !selectedReceitas.some(s => s.receitaId === r.id))
+                 {receitas.data
+                    .filter(r => r.ativo) // receita ativa
+                    .filter(r => r.produto?.tipoProduto?.ativo) // tipo do produto ativo
+                    .filter(r => !selectedReceitas.some(s => s.receitaId === r.id)) // ainda não selecionada
                     .map(r => (
                       <option key={r.id} value={r.id}>{r.produto.nome}</option>
-                    ))}
+                  ))}
                 </select>
               ) : (
                 <span className="text-sm text-neutral-700">

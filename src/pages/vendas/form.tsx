@@ -305,7 +305,9 @@ export default function VendaForm() {
                 !isLoadingVendedores ? (
                   <select {...register("vendedorId", { required: false })} className="input w-full">
                     <option value="">Selecione um vendedor</option>
-                    {vendedores?.data.map((vendedor) => (
+                   {vendedores?.data
+                    .filter((vendedor) => vendedor.ativo) // 👈 só vendedores ativos
+                    .map((vendedor) => (
                       <option key={vendedor.id} value={vendedor.id}>
                         {vendedor.nome}
                       </option>
@@ -323,7 +325,7 @@ export default function VendaForm() {
 
             <label className="flex flex-col">
               <span>Produtos:</span>
-              {!id && produtos?.data.length ? (
+              {!id && produtos?.data?.length && (
                 <select
                   onChange={(e) =>
                     adicionarProduto(e.target.value, e.target.options[e.target.selectedIndex].text)
@@ -331,20 +333,18 @@ export default function VendaForm() {
                   className="input w-full"
                 >
                   <option value="">Selecione um produto</option>
-                  {produtos?.data
-                    .filter((prod) => !selectedProdutos.some((selected) => selected.produtoId === prod.id))
+                  {produtos.data
+                    .filter(
+                      (prod) =>
+                        prod.ativo &&
+                        !selectedProdutos.some((selected) => selected.produtoId === prod.id)
+                    )
                     .map((prod) => (
                       <option key={prod.id} value={prod.id}>
                         {prod.nome}
                       </option>
                     ))}
                 </select>
-              ) : !isLoadingProdutos ? (
-                <span className="text-sm text-neutral-700">Nenhum produto encontrado</span>
-              ) : (
-                <span className="flex items-center gap-2 mt-2">
-                  Aguarde <Loader2 className="animate-spin" />
-                </span>
               )}
             </label>
 
@@ -395,18 +395,6 @@ export default function VendaForm() {
                 </div>
               ))}
             </div>
-
-            {/* Botão Salvar Alterações abaixo dos produtos */}
-            {/* {id && status === "OPENED" && (
-              // <button
-              //   onClick={atualizarVenda}
-              //   type="button"
-              //   className="mt-4 text-sm w-full whitespace-nowrap bg-pink-500 px-4 py-2 text-white rounded-lg cursor-pointer"
-              //   disabled={isLoading || loader}
-              // >
-              //   {loader ? <Loader2 className="animate-spin" /> : "Salvar Alterações"}
-              // </button>
-            )} */}
 
             {apiError && <p className="text-red-600 text-sm mt-2">{apiError}</p>}
 
